@@ -1,0 +1,20 @@
+NASSUS TECNOLOGIA — PACOTE DO SITE
+
+Arquivos principais:
+- index.html: página inicial
+- servicos.html: serviços
+- projetos.html: portfólio
+- contato.html: formulário para WhatsApp
+- privacidade.html: política de privacidade
+- sitemap.xml e robots.txt: indexação no Google
+- lucas-1.jpg e lucas-2.jpg: imagens do site
+
+PUBLICAÇÃO
+1. Substitua os arquivos atuais do repositório por estes arquivos.
+2. Faça commit e push para a branch conectada à Vercel.
+3. Aguarde o novo deployment terminar.
+4. Confira https://www.nassusinfo.com.br/sitemap.xml
+5. No Google Search Console, envie apenas: sitemap.xml
+
+Domínio principal configurado no SEO:
+https://www.nassusinfo.com.br/
