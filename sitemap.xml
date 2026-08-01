@@ -3,6 +3,8 @@
   <url><loc>https://www.nassusinfo.com.br/</loc><priority>1.0</priority></url>
   <url><loc>https://www.nassusinfo.com.br/servicos.html</loc><priority>0.8</priority></url>
   <url><loc>https://www.nassusinfo.com.br/projetos.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.nassusinfo.com.br/planos.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.nassusinfo.com.br/duvidas.html</loc><priority>0.8</priority></url>
   <url><loc>https://www.nassusinfo.com.br/contato.html</loc><priority>0.7</priority></url>
   <url><loc>https://www.nassusinfo.com.br/privacidade.html</loc><priority>0.4</priority></url>
 </urlset>
