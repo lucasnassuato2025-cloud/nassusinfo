@@ -75,7 +75,7 @@ const navMenu=document.querySelector('#navMenu');const navLinks=document.querySe
 const reveals=document.querySelectorAll('.reveal');if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('in');observer.unobserve(entry.target)}}),{threshold:.08});reveals.forEach(item=>observer.observe(item));setTimeout(()=>reveals.forEach(item=>item.classList.add('in')),1800)}else{reveals.forEach(item=>item.classList.add('in'))}
 </script>
 <script>
-const crmUrl='https://nassus-crm.vercel.app';
+const crmUrl='https://crm.nassusinfo.com.br';
 const clientArea='<a href="'+crmUrl+'" target="_blank" rel="noopener">&Aacute;rea do cliente</a>';
 const budgetButton=document.querySelector('.nav-links .btn-primary');
 if(budgetButton) budgetButton.insertAdjacentHTML('beforebegin',clientArea);
