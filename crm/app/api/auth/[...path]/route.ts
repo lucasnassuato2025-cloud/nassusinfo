@@ -1,5 +1,13 @@
-import { auth } from "@/lib/auth/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export const { GET, POST } = auth.handler();
+function retiredRoute() {
+  return NextResponse.json(
+    { error: "A autenticação agora é realizada diretamente pelo Neon Auth." },
+    { status: 410 },
+  );
+}
+
+export const GET = retiredRoute;
+export const POST = retiredRoute;
