@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 
 import CRMPro from "@/app/crm-pro";
-import { InstallmentsPanel, ReportsModule, TasksModule } from "@/app/operations";
+import {
+  AlertsModule,
+  Client360Module,
+  DocumentsModule,
+  InstallmentsPanel,
+  ReportsModule,
+  TasksModule,
+} from "@/app/operations";
 import {
   AUDIT_COLUMNS,
   CLIENT_COLUMNS,
@@ -20,7 +27,7 @@ import {
 } from "@/lib/crm-pro";
 import { neonClient } from "@/lib/neon";
 
-type SuiteModule = "crm" | "tasks" | "installments" | "reports";
+type SuiteModule = "crm" | "client360" | "tasks" | "documents" | "installments" | "alerts" | "reports";
 
 type Props = {
   initialClients: Client[];
@@ -34,8 +41,11 @@ type DataRow = Record<string, unknown>;
 
 const MODULES: Array<{ id: SuiteModule; label: string; icon: string; eyebrow: string; title: string }> = [
   { id: "crm", label: "CRM principal", icon: "⌂", eyebrow: "GESTÃO COMERCIAL", title: "Central de negócios" },
+  { id: "client360", label: "Cliente 360°", icon: "◉", eyebrow: "RELACIONAMENTO", title: "Ficha completa do cliente" },
   { id: "tasks", label: "Agenda", icon: "✓", eyebrow: "OPERAÇÃO DIÁRIA", title: "Tarefas e histórico" },
+  { id: "documents", label: "Documentos", icon: "▤", eyebrow: "COMERCIAL", title: "Propostas, contratos e recibos" },
   { id: "installments", label: "Parcelas", icon: "R$", eyebrow: "CONTROLE FINANCEIRO", title: "Cronograma de recebimentos" },
+  { id: "alerts", label: "Alertas", icon: "!", eyebrow: "CENTRAL DE ATENÇÃO", title: "Prazos, cobranças e renovações" },
   { id: "reports", label: "Relatórios", icon: "▥", eyebrow: "INTELIGÊNCIA DO NEGÓCIO", title: "Indicadores e exportação" },
 ];
 
@@ -89,7 +99,9 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     }
 
     void refreshData();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [activeModule]);
 
   async function signOut() {
@@ -104,8 +116,14 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     if (refreshError) {
       return <div className="suite-loading suite-loading-error"><strong>Não foi possível atualizar</strong><span>{refreshError}</span><button type="button" className="pro-primary" onClick={() => setActiveModule("crm")}>Voltar ao CRM</button></div>;
     }
+    if (activeModule === "client360") {
+      return <Client360Module clients={clients} projects={projects} payments={payments} audits={audits} />;
+    }
     if (activeModule === "tasks") {
       return <TasksModule clients={clients} projects={projects} />;
+    }
+    if (activeModule === "documents") {
+      return <DocumentsModule clients={clients} projects={projects} userName={user.name} />;
     }
     if (activeModule === "installments") {
       return (
@@ -116,6 +134,9 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
           onPaymentChange={(payment) => setPayments((current) => current.map((item) => item.id === payment.id ? payment : item))}
         />
       );
+    }
+    if (activeModule === "alerts") {
+      return <AlertsModule clients={clients} projects={projects} payments={payments} />;
     }
     return <ReportsModule clients={clients} projects={projects} payments={payments} />;
   }
@@ -152,7 +173,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
             </button>
           ))}
         </nav>
-        <div className="suite-help"><span>CENTRAL OPERACIONAL</span><strong>Organize o trabalho e receba no prazo.</strong><small>Agenda, parcelas e relatórios ligados aos dados do seu CRM.</small></div>
+        <div className="suite-help"><span>CENTRAL OPERACIONAL</span><strong>Do primeiro contato à renovação.</strong><small>Clientes, documentos, agenda, parcelas, alertas e relatórios ligados aos dados do CRM.</small></div>
         <div className="suite-user"><div>{initials(user.name)}</div><section><strong>{user.name}</strong><small>{user.email}</small></section><button type="button" onClick={signOut} aria-label="Sair">↗</button></div>
       </aside>
 
