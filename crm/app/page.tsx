@@ -30,6 +30,12 @@ type DashboardUser = {
   email: string;
 };
 
+type DataRow = Record<string, unknown>;
+
+function rows(value: unknown): DataRow[] {
+  return Array.isArray(value) ? (value as unknown as DataRow[]) : [];
+}
+
 export default function HomePage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -69,10 +75,10 @@ export default function HomePage() {
         if (firstError) throw new Error(firstError.message || "Não foi possível carregar os dados do CRM.");
         if (!active) return;
 
-        setClients(((clientQuery.data ?? []) as Record<string, unknown>[]).map(mapClient));
-        setProjects(((projectQuery.data ?? []) as Record<string, unknown>[]).map(mapProject));
-        setPayments(((paymentQuery.data ?? []) as Record<string, unknown>[]).map(mapPayment));
-        setAudits(((auditQuery.data ?? []) as Record<string, unknown>[]).map(mapSiteAudit));
+        setClients(rows(clientQuery.data).map(mapClient));
+        setProjects(rows(projectQuery.data).map(mapProject));
+        setPayments(rows(paymentQuery.data).map(mapPayment));
+        setAudits(rows(auditQuery.data).map(mapSiteAudit));
         setUser({
           name: currentUser.name || currentUser.email.split("@")[0],
           email: currentUser.email,
