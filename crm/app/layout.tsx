@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
+import "./brand.css";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +18,14 @@ export const metadata: Metadata = {
   title: "Nassus CRM | Central Comercial",
   description: "Central comercial privada da Nassusinfo.",
   robots: { index: false, follow: false },
-  icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/nassus-logo.svg" },
+  icons: {
+    icon: [
+      { url: "/api/favicon?v=6", type: "image/x-icon", sizes: "any" },
+      { url: "/api/brand-logo?v=6", type: "image/png", sizes: "256x256" },
+    ],
+    shortcut: "/api/favicon?v=6",
+    apple: "/api/brand-logo?v=6",
+  },
 };
 
 export const viewport: Viewport = {
