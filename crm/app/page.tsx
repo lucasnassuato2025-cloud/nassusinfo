@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import CRMPro from "@/app/crm-pro";
+import CRMSuite from "@/app/crm-suite";
 import {
   AUDIT_COLUMNS,
   CLIENT_COLUMNS,
@@ -121,7 +121,7 @@ export default function HomePage() {
   if (!user) return null;
 
   return (
-    <CRMPro
+    <CRMSuite
       initialClients={clients}
       initialProjects={projects}
       initialPayments={payments}
