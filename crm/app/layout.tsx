@@ -20,11 +20,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   icons: {
     icon: [
-      { url: "/favicon.ico?v=7", type: "image/x-icon", sizes: "any" },
-      { url: "/api/brand-logo?v=7", type: "image/png", sizes: "256x256" },
+      { url: "/api/favicon?v=8", type: "image/x-icon", sizes: "any" },
+      { url: "/api/brand-logo?v=8", type: "image/png", sizes: "256x256" },
     ],
-    shortcut: "/favicon.ico?v=7",
-    apple: "/api/brand-logo?v=7",
+    shortcut: "/api/favicon?v=8",
+    apple: "/api/brand-logo?v=8",
   },
 };
 
