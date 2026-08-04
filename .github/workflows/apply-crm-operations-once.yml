@@ -150,3 +150,5 @@ jobs:
           git add crm/app/crm-pro.tsx
           git commit -m "Integrar agenda parcelas histórico e relatórios ao painel"
           git push
+
+# retry 2
