@@ -6,6 +6,7 @@ import "./brand.css";
 import "./premium.css";
 import "./boot.css";
 import "./auth-pro.css";
+import "./auth-private.css";
 import "./crm-operations.css";
 import "./crm-suite.css";
 import "./crm-suite-state.css";
