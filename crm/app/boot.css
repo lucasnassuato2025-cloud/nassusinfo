@@ -1,0 +1,70 @@
+.pro-boot {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  color: #ffffff;
+  text-align: center;
+  background:
+    radial-gradient(circle at 65% 20%, rgba(49, 92, 255, 0.38), transparent 30%),
+    linear-gradient(150deg, #06101f, #0c1b34);
+}
+
+.pro-boot-logo {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  background: #050b17 url('/api/brand-logo?v=8') center / cover no-repeat;
+  box-shadow: 0 20px 45px rgba(49, 92, 255, 0.35);
+}
+
+.pro-boot > span {
+  margin-top: 22px;
+  color: #8ca3c8;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.18em;
+}
+
+.pro-boot h1 {
+  max-width: 660px;
+  margin: 10px 0 22px;
+  font-size: clamp(30px, 5vw, 54px);
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.pro-boot p {
+  max-width: 620px;
+  margin: -6px 0 20px;
+  color: #a7b6cc;
+  line-height: 1.65;
+}
+
+.pro-boot-line {
+  width: min(310px, 80vw);
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pro-boot-line i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #315cff, #18a8d8);
+  animation: proBoot 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes proBoot {
+  from { transform: translateX(-20%); }
+  to { transform: translateX(155%); }
+}
+
+.pro-boot-error .pro-boot-logo {
+  filter: grayscale(0.2);
+}
