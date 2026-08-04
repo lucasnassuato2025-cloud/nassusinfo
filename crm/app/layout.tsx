@@ -6,6 +6,7 @@ import "./brand.css";
 import "./premium.css";
 import "./boot.css";
 import "./auth-pro.css";
+import "./crm-operations.css";
 
 const geist = Geist({
   variable: "--font-geist-sans",
