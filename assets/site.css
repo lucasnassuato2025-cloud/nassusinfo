@@ -56,7 +56,7 @@ p{margin-top:0}
 .nav{height:80px;display:flex;align-items:center;position:sticky;top:0;z-index:60;background:rgba(244,246,251,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(11,19,38,.08)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:12px;font:800 17px var(--display);letter-spacing:.03em}
-.brand-mark{width:42px;height:42px;border-radius:12px;background:var(--dark);color:#fff;display:grid;place-items:center;font:800 18px var(--display);box-shadow:0 8px 18px rgba(11,19,38,.16);flex:0 0 auto}
+.brand-mark{width:42px;height:42px;border-radius:12px;background-color:var(--dark);background-image:url('/nassus-logo.svg');background-position:center;background-repeat:no-repeat;background-size:28px;color:transparent;display:grid;place-items:center;font:800 0 var(--display);box-shadow:0 8px 18px rgba(11,19,38,.16);flex:0 0 auto}
 .brand small{display:block;font:600 8px var(--display);letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-top:1px}
 .nav-links{display:flex;align-items:center;gap:25px;font-size:14px;color:var(--ink-2)}
 .nav-links>a:not(.btn){position:relative}

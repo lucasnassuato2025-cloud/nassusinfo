@@ -786,3 +786,16 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Marca original Nassus */
+.login-brand > span,
+.crm-brand > span {
+  background-color: #0a1330;
+  background-image: url('/nassus-logo.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 70%;
+  color: transparent;
+  font-size: 0;
+}

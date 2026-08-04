@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Nassus CRM | Central Comercial",
   description: "Central comercial privada da Nassusinfo.",
   robots: { index: false, follow: false },
+  icons: { icon: "/icon.svg", shortcut: "/icon.svg", apple: "/nassus-logo.svg" },
 };
 
 export const viewport: Viewport = {
