@@ -1,1 +1,2 @@
-export { GET, dynamic } from "../api/favicon/route";
+export { GET } from "../api/favicon/route";
+export const dynamic = "force-static";
