@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 import "./brand.css";
+import "./premium.css";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nassus CRM | Central Comercial",
-  description: "Central comercial privada da Nassusinfo.",
+  title: "Nassus CRM Pro | Gestão Comercial",
+  description: "Central comercial, projetos, financeiro e auditoria inteligente da Nassusinfo.",
   robots: { index: false, follow: false },
   icons: {
     icon: [
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#081326",
+  themeColor: "#07101f",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
