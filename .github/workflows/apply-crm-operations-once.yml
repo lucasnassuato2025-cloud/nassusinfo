@@ -1,0 +1,152 @@
+name: Integrar módulos operacionais ao CRM
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-crm-operations-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Integrar agenda, parcelas e relatórios
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('crm/app/crm-pro.tsx')
+          src = path.read_text(encoding='utf-8')
+
+          if 'from "@/app/operations"' not in src:
+              src = src.replace(
+                  'import { neonClient } from "@/lib/neon";',
+                  'import { neonClient } from "@/lib/neon";\nimport { InstallmentsPanel, ReportsModule, TasksModule, recordActivity } from "@/app/operations";'
+              )
+
+          src = src.replace(
+              'type ModuleId = "dashboard" | "leads" | "clients" | "projects" | "finance" | "ai";',
+              'type ModuleId = "dashboard" | "leads" | "clients" | "projects" | "tasks" | "finance" | "reports" | "ai";'
+          )
+
+          old_modules = '''  { id: "projects", label: "Projetos", icon: "◇", eyebrow: "Produção e entregas" },
+  { id: "finance", label: "Financeiro", icon: "R$", eyebrow: "Receitas e cobranças" },
+  { id: "ai", label: "Sites & IA", icon: "✦", eyebrow: "Auditoria inteligente" },'''
+          new_modules = '''  { id: "projects", label: "Projetos", icon: "◇", eyebrow: "Produção e entregas" },
+  { id: "tasks", label: "Agenda", icon: "✓", eyebrow: "Tarefas e histórico" },
+  { id: "finance", label: "Financeiro", icon: "R$", eyebrow: "Receitas e cobranças" },
+  { id: "reports", label: "Relatórios", icon: "▥", eyebrow: "Indicadores e exportação" },
+  { id: "ai", label: "Sites & IA", icon: "✦", eyebrow: "Auditoria inteligente" },'''
+          src = src.replace(old_modules, new_modules)
+
+          old_quick = '''    else if (activeModule === "projects") openNewProject();
+    else if (activeModule === "finance") openNewPayment();
+    else if (activeModule === "ai") document.getElementById("audit-url")?.focus();'''
+          new_quick = '''    else if (activeModule === "projects") openNewProject();
+    else if (activeModule === "tasks") document.getElementById("tasks-new-button")?.click();
+    else if (activeModule === "finance") openNewPayment();
+    else if (activeModule === "reports") document.getElementById("reports-export-button")?.click();
+    else if (activeModule === "ai") document.getElementById("audit-url")?.focus();'''
+          src = src.replace(old_quick, new_quick)
+
+          old_client = '''      setClients((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      closeModal();
+      flash(editingId ? "Cadastro atualizado." : "Cadastro criado com sucesso.");'''
+          new_client = '''      setClients((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      void recordActivity({ clientId: saved.id, type: editingId ? "cadastro_atualizado" : "cadastro_criado", title: editingId ? "Cadastro atualizado" : "Cadastro criado", description: `${saved.lifecycle === "lead" ? "Lead" : "Cliente"}: ${saved.tradeName || saved.company || saved.name}` });
+      closeModal();
+      flash(editingId ? "Cadastro atualizado." : "Cadastro criado com sucesso.");'''
+          src = src.replace(old_client, new_client)
+
+          old_convert = '''      setClients((current) => current.map((item) => item.id === client.id ? saved : item));
+      setActiveModule("clients");
+      flash("Lead convertido em cliente. Agora você pode criar o projeto e a cobrança.");'''
+          new_convert = '''      setClients((current) => current.map((item) => item.id === client.id ? saved : item));
+      void recordActivity({ clientId: saved.id, type: "lead_convertido", title: "Lead convertido em cliente", description: "A oportunidade foi marcada como fechada." });
+      setActiveModule("clients");
+      flash("Lead convertido em cliente. Agora você pode criar o projeto e a cobrança.");'''
+          src = src.replace(old_convert, new_convert)
+
+          old_project = '''      setProjects((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      closeModal();
+      flash(editingId ? "Projeto atualizado." : "Projeto criado com sucesso.");'''
+          new_project = '''      setProjects((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      void recordActivity({ clientId: saved.clientId, projectId: saved.id, type: editingId ? "projeto_atualizado" : "projeto_criado", title: editingId ? "Projeto atualizado" : "Projeto criado", description: `${saved.name} · ${currency.format(saved.totalValue)}` });
+      closeModal();
+      flash(editingId ? "Projeto atualizado." : "Projeto criado com sucesso.");'''
+          src = src.replace(old_project, new_project)
+
+          old_payment = '''      setPayments((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      closeModal();
+      flash(editingId ? "Cobrança atualizada." : "Cobrança registrada com sucesso.");'''
+          new_payment = '''      setPayments((current) => editingId ? current.map((item) => item.id === editingId ? saved : item) : [saved, ...current]);
+      void recordActivity({ clientId: saved.clientId, projectId: saved.projectId, type: editingId ? "cobranca_atualizada" : "cobranca_criada", title: editingId ? "Cobrança atualizada" : "Cobrança registrada", description: `${saved.description} · ${currency.format(saved.totalAmount)} · ${saved.installments}x` });
+      closeModal();
+      flash(editingId ? "Cobrança atualizada." : "Cobrança registrada com sucesso.");'''
+          src = src.replace(old_payment, new_payment)
+
+          old_paid = '''      setPayments((current) => current.map((item) => item.id === payment.id ? saved : item));
+      flash("Pagamento marcado como recebido.");'''
+          new_paid = '''      setPayments((current) => current.map((item) => item.id === payment.id ? saved : item));
+      void recordActivity({ clientId: saved.clientId, projectId: saved.projectId, type: "pagamento_recebido", title: "Pagamento recebido", description: `${saved.description} · ${currency.format(saved.totalAmount)}` });
+      flash("Pagamento marcado como recebido.");'''
+          src = src.replace(old_paid, new_paid)
+
+          old_audit = '''      setCurrentAudit(saved);
+      setAuditUrl(saved.url);
+      flash("Auditoria concluída e salva no CRM.");'''
+          new_audit = '''      setCurrentAudit(saved);
+      setAuditUrl(saved.url);
+      if (saved.clientId) void recordActivity({ clientId: saved.clientId, projectId: saved.projectId, type: "auditoria_site", title: "Site analisado", description: `${saved.title} · nota ${saved.overallScore}/100` });
+      flash("Auditoria concluída e salva no CRM.");'''
+          src = src.replace(old_audit, new_audit)
+
+          finance_end = '''        </section>
+      </div>
+    );
+  }
+
+  function aiModule() {'''
+          finance_plus = '''        </section>
+        <InstallmentsPanel payments={payments} clients={clients} projects={projects} onPaymentChange={(payment) => setPayments((current) => current.map((item) => item.id === payment.id ? payment : item))} />
+      </div>
+    );
+  }
+
+  function aiModule() {'''
+          src = src.replace(finance_end, finance_plus)
+
+          old_render = '''    if (activeModule === "projects") return projectsModule();
+    if (activeModule === "finance") return financeModule();
+    return aiModule();'''
+          new_render = '''    if (activeModule === "projects") return projectsModule();
+    if (activeModule === "tasks") return <TasksModule clients={clients} projects={projects} />;
+    if (activeModule === "finance") return financeModule();
+    if (activeModule === "reports") return <ReportsModule clients={clients} projects={projects} payments={payments} />;
+    return aiModule();'''
+          src = src.replace(old_render, new_render)
+
+          src = src.replace('MODULES.slice(0, 5).map', 'MODULES.map')
+
+          required = [
+              'TasksModule clients={clients}',
+              'InstallmentsPanel payments={payments}',
+              'ReportsModule clients={clients}',
+              'recordActivity({ clientId: saved.id',
+          ]
+          missing = [item for item in required if item not in src]
+          if missing:
+              raise SystemExit(f'Integrações ausentes: {missing}')
+
+          path.write_text(src, encoding='utf-8')
+
+      - name: Publicar integração
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add crm/app/crm-pro.tsx
+          git commit -m "Integrar agenda parcelas histórico e relatórios ao painel"
+          git push
