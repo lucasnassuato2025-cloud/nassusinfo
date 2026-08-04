@@ -49,44 +49,56 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-brand" aria-label="Apresentação do Nassus CRM">
-        <span aria-hidden="true">N</span>
-        <strong>Nassus</strong>
-        <small>Central comercial</small>
-        <h1>Seu negócio organizado para vender mais.</h1>
-        <p>Clientes, oportunidades e próximas ações reunidos em um painel privado.</p>
-      </section>
-
-      <section className="login-card">
-        <div>
-          <small>ACESSO PROTEGIDO</small>
-          <h2>{registerMode ? "Crie sua conta" : "Entre no CRM"}</h2>
-          <p>{registerMode ? "Crie seu acesso seguro ao sistema." : "Informe seu e-mail e sua senha para continuar."}</p>
+    <main className="pro-auth">
+      <section className="pro-auth-visual" aria-label="Apresentação do Nassus CRM Pro">
+        <div className="pro-auth-brand">
+          <span aria-hidden="true" />
+          <div><strong>Nassus CRM</strong><small>PRO BUSINESS</small></div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {registerMode && (
-            <label>
-              Seu nome
-              <input name="name" required placeholder="Lucas Nassuato" autoComplete="name" />
-            </label>
-          )}
-          <label>
-            E-mail
-            <input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" />
-          </label>
-          <label>
-            Senha
-            <input name="password" type="password" minLength={8} required autoComplete={registerMode ? "new-password" : "current-password"} placeholder="Mínimo de 8 caracteres" />
-          </label>
-          {error && <p className="login-error" role="alert">{error}</p>}
-          <button type="submit" disabled={loading}>{loading ? "Aguarde..." : registerMode ? "Criar conta" : "Entrar com segurança"}</button>
-        </form>
+        <div className="pro-auth-copy">
+          <span>GESTÃO COMERCIAL PREMIUM</span>
+          <h1>Do primeiro contato ao pagamento recebido.</h1>
+          <p>Leads, clientes, projetos, cobranças e auditorias de sites reunidos em uma central privada da Nassusinfo.</p>
+        </div>
 
-        <button type="button" className="login-switch" onClick={() => { setRegisterMode((current) => !current); setError(""); }}>
-          {registerMode ? "Já tenho uma conta" : "Primeiro acesso? Crie sua conta"}
-        </button>
+        <div className="pro-auth-features">
+          <div><strong>Funil comercial</strong><small>Acompanhe propostas, negociações e fechamentos.</small></div>
+          <div><strong>Projetos e financeiro</strong><small>Controle entregas, Pix, cartão e parcelamentos.</small></div>
+          <div><strong>Auditoria inteligente</strong><small>Analise sites e salve relatórios dentro do CRM.</small></div>
+        </div>
+      </section>
+
+      <section className="pro-auth-form-side">
+        <div className="pro-auth-card">
+          <span>ACESSO PROTEGIDO</span>
+          <h2>{registerMode ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
+          <p>{registerMode ? "Crie um acesso privado para começar a usar o CRM." : "Entre com seus dados para acessar a central de negócios."}</p>
+
+          <form onSubmit={handleSubmit}>
+            {registerMode && (
+              <label>
+                Seu nome
+                <input name="name" required placeholder="Lucas Nassuato" autoComplete="name" />
+              </label>
+            )}
+            <label>
+              E-mail
+              <input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" />
+            </label>
+            <label>
+              Senha
+              <input name="password" type="password" minLength={8} required autoComplete={registerMode ? "new-password" : "current-password"} placeholder="Mínimo de 8 caracteres" />
+            </label>
+            {error && <p className="pro-auth-error" role="alert">{error}</p>}
+            <button type="submit" disabled={loading}>{loading ? "Aguarde..." : registerMode ? "Criar acesso" : "Entrar no CRM"}</button>
+          </form>
+
+          <button type="button" className="pro-auth-switch" onClick={() => { setRegisterMode((current) => !current); setError(""); }}>
+            {registerMode ? "Já tenho uma conta" : "Primeiro acesso? Crie sua conta"}
+          </button>
+          <div className="pro-auth-security">● Ambiente privado e protegido por autenticação</div>
+        </div>
       </section>
     </main>
   );
