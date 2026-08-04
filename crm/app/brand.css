@@ -1,0 +1,12 @@
+.login-brand > span,
+.crm-brand > span {
+  overflow: hidden;
+  padding: 0;
+  background-color: #050b17 !important;
+  background-image: url('/api/brand-logo?v=6') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
