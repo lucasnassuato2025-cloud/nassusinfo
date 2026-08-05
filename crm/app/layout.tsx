@@ -11,6 +11,7 @@ import "./crm-operations.css";
 import "./crm-suite.css";
 import "./crm-suite-state.css";
 import "./business-suite.css";
+import "./infrastructure.css";
 
 const geist = Geist({
   variable: "--font-geist-sans",
