@@ -1,1 +1,3 @@
-const SMALL = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "de
+const UNITS = [
+  "zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove",
+  "dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "
