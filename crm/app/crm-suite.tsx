@@ -12,6 +12,7 @@ import {
   ReportsModule,
   TasksModule,
 } from "@/app/operations";
+import { CRMIcon, CRMIconName } from "@/app/ui/crm-icons";
 import {
   AUDIT_COLUMNS,
   CLIENT_COLUMNS,
@@ -40,15 +41,24 @@ type Props = {
 
 type DataRow = Record<string, unknown>;
 
-const MODULES: Array<{ id: SuiteModule; label: string; icon: string; eyebrow: string; title: string }> = [
-  { id: "crm", label: "CRM principal", icon: "⌂", eyebrow: "GESTÃO COMERCIAL", title: "Central de negócios" },
-  { id: "client360", label: "Cliente 360°", icon: "◉", eyebrow: "RELACIONAMENTO", title: "Ficha completa do cliente" },
-  { id: "infrastructure", label: "Infraestrutura", icon: "◈", eyebrow: "SITES E TECNOLOGIA", title: "Sites, acessos, renovações e custos" },
-  { id: "tasks", label: "Agenda", icon: "✓", eyebrow: "OPERAÇÃO DIÁRIA", title: "Tarefas e histórico" },
-  { id: "documents", label: "Documentos", icon: "▤", eyebrow: "COMERCIAL", title: "Propostas, contratos e recibos" },
-  { id: "installments", label: "Parcelas", icon: "R$", eyebrow: "CONTROLE FINANCEIRO", title: "Cronograma de recebimentos" },
-  { id: "alerts", label: "Alertas", icon: "!", eyebrow: "CENTRAL DE ATENÇÃO", title: "Prazos, cobranças e renovações" },
-  { id: "reports", label: "Relatórios", icon: "▥", eyebrow: "INTELIGÊNCIA DO NEGÓCIO", title: "Indicadores e exportação" },
+type ModuleDefinition = {
+  id: SuiteModule;
+  label: string;
+  icon: CRMIconName;
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+const MODULES: ModuleDefinition[] = [
+  { id: "crm", label: "Central", icon: "home", eyebrow: "GESTÃO COMERCIAL", title: "Central de negócios", description: "Leads, clientes, projetos e financeiro." },
+  { id: "client360", label: "Cliente 360°", icon: "user", eyebrow: "RELACIONAMENTO", title: "Ficha completa do cliente", description: "Toda a jornada em uma única visão." },
+  { id: "infrastructure", label: "Infraestrutura", icon: "infrastructure", eyebrow: "SITES E TECNOLOGIA", title: "Infraestrutura digital", description: "Sites, acessos, renovações e custos." },
+  { id: "tasks", label: "Agenda", icon: "calendar", eyebrow: "OPERAÇÃO DIÁRIA", title: "Agenda operacional", description: "Prioridades, prazos e histórico." },
+  { id: "documents", label: "Documentos", icon: "document", eyebrow: "COMERCIAL", title: "Central de documentos", description: "Propostas, contratos e recibos." },
+  { id: "installments", label: "Parcelas", icon: "installments", eyebrow: "CONTROLE FINANCEIRO", title: "Cronograma financeiro", description: "Recebimentos e parcelas por vencimento." },
+  { id: "alerts", label: "Alertas", icon: "bell", eyebrow: "CENTRAL DE ATENÇÃO", title: "Central de alertas", description: "Cobranças, entregas e renovações." },
+  { id: "reports", label: "Relatórios", icon: "chart", eyebrow: "INTELIGÊNCIA DO NEGÓCIO", title: "Inteligência executiva", description: "Indicadores, tendências e exportação." },
 ];
 
 function rows(value: unknown): DataRow[] {
@@ -113,23 +123,27 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
 
   function renderOperation() {
     if (refreshing) {
-      return <div className="suite-loading"><i /><strong>Atualizando informações...</strong><span>Buscando os dados mais recentes do CRM.</span></div>;
+      return (
+        <div className="suite-loading">
+          <i />
+          <strong>Sincronizando sua operação</strong>
+          <span>Carregando os dados mais recentes com segurança.</span>
+        </div>
+      );
     }
     if (refreshError) {
-      return <div className="suite-loading suite-loading-error"><strong>Não foi possível atualizar</strong><span>{refreshError}</span><button type="button" className="pro-primary" onClick={() => setActiveModule("crm")}>Voltar ao CRM</button></div>;
+      return (
+        <div className="suite-loading suite-loading-error">
+          <strong>Não foi possível atualizar</strong>
+          <span>{refreshError}</span>
+          <button type="button" className="pro-primary" onClick={() => setActiveModule("crm")}>Voltar à central</button>
+        </div>
+      );
     }
-    if (activeModule === "client360") {
-      return <Client360Module clients={clients} projects={projects} payments={payments} audits={audits} />;
-    }
-    if (activeModule === "infrastructure") {
-      return <InfrastructureModule clients={clients} projects={projects} />;
-    }
-    if (activeModule === "tasks") {
-      return <TasksModule clients={clients} projects={projects} />;
-    }
-    if (activeModule === "documents") {
-      return <DocumentsModule clients={clients} projects={projects} userName={user.name} />;
-    }
+    if (activeModule === "client360") return <Client360Module clients={clients} projects={projects} payments={payments} audits={audits} />;
+    if (activeModule === "infrastructure") return <InfrastructureModule clients={clients} projects={projects} />;
+    if (activeModule === "tasks") return <TasksModule clients={clients} projects={projects} />;
+    if (activeModule === "documents") return <DocumentsModule clients={clients} projects={projects} userName={user.name} />;
     if (activeModule === "installments") {
       return (
         <InstallmentsPanel
@@ -140,9 +154,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
         />
       );
     }
-    if (activeModule === "alerts") {
-      return <AlertsModule clients={clients} projects={projects} payments={payments} />;
-    }
+    if (activeModule === "alerts") return <AlertsModule clients={clients} projects={projects} payments={payments} />;
     return <ReportsModule clients={clients} projects={projects} payments={payments} />;
   }
 
@@ -156,10 +168,11 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
           initialAudits={audits}
           user={user}
         />
-        <nav className="suite-dock" aria-label="Central operacional">
+        <nav className="suite-dock" aria-label="Acesso rápido aos módulos operacionais">
           {MODULES.slice(1).map((item) => (
-            <button type="button" key={item.id} onClick={() => setActiveModule(item.id)}>
-              <i>{item.icon}</i><span>{item.label}</span>
+            <button type="button" key={item.id} title={item.description} onClick={() => setActiveModule(item.id)}>
+              <i><CRMIcon name={item.icon} /></i>
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
@@ -170,26 +183,55 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
   return (
     <div className="suite-app">
       <aside className="suite-sidebar">
-        <div className="suite-brand"><span aria-hidden="true" /><div><strong>Nassus CRM</strong><small>PRO BUSINESS</small></div></div>
+        <div className="suite-brand">
+          <span aria-hidden="true" />
+          <div><strong>Nassus CRM</strong><small>BLACK EDITION</small></div>
+        </div>
+        <div className="suite-nav-label">WORKSPACE</div>
         <nav>
           {MODULES.map((item) => (
             <button type="button" key={item.id} className={activeModule === item.id ? "active" : ""} onClick={() => setActiveModule(item.id)}>
-              <i>{item.icon}</i><span>{item.label}</span>
+              <i><CRMIcon name={item.icon} /></i>
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
-        <div className="suite-help"><span>CENTRAL OPERACIONAL</span><strong>Do primeiro contato à renovação.</strong><small>Clientes, sites, acessos, documentos, agenda, parcelas, alertas e relatórios ligados aos dados do CRM.</small></div>
-        <div className="suite-user"><div>{initials(user.name)}</div><section><strong>{user.name}</strong><small>{user.email}</small></section><button type="button" onClick={signOut} aria-label="Sair">↗</button></div>
+        <div className="suite-help">
+          <span>OPERAÇÃO NASSUSINFO</span>
+          <strong>Um sistema. Toda a empresa.</strong>
+          <small>Comercial, entrega, financeiro e infraestrutura conectados em tempo real.</small>
+        </div>
+        <div className="suite-user">
+          <div>{initials(user.name)}</div>
+          <section><strong>{user.name}</strong><small>{user.email}</small></section>
+          <button type="button" onClick={signOut} aria-label="Sair do CRM"><CRMIcon name="logout" /></button>
+        </div>
       </aside>
 
       <main className="suite-main">
-        <header className="suite-topbar"><div><span>{definition.eyebrow}</span><h1>{definition.title}</h1></div><button type="button" className="suite-back" onClick={() => setActiveModule("crm")}>← Voltar ao CRM</button></header>
+        <header className="suite-topbar">
+          <div className="suite-title-block">
+            <span>{definition.eyebrow}</span>
+            <h1>{definition.title}</h1>
+            <p>{definition.description}</p>
+          </div>
+          <div className="suite-topbar-actions">
+            <div className="suite-live"><i />Dados sincronizados</div>
+            <button type="button" className="suite-back" onClick={() => setActiveModule("crm")}>
+              <CRMIcon name="arrow-left" />
+              <span>Voltar à central</span>
+            </button>
+          </div>
+        </header>
         <div className="suite-content">{renderOperation()}</div>
       </main>
 
-      <nav className="suite-mobile-nav">
+      <nav className="suite-mobile-nav" aria-label="Navegação móvel">
         {MODULES.map((item) => (
-          <button type="button" key={item.id} className={activeModule === item.id ? "active" : ""} onClick={() => setActiveModule(item.id)}><i>{item.icon}</i><span>{item.label}</span></button>
+          <button type="button" key={item.id} className={activeModule === item.id ? "active" : ""} onClick={() => setActiveModule(item.id)}>
+            <i><CRMIcon name={item.icon} /></i>
+            <span>{item.label}</span>
+          </button>
         ))}
       </nav>
     </div>
