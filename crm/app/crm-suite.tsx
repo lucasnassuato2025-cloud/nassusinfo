@@ -7,6 +7,7 @@ import {
   AlertsModule,
   Client360Module,
   DocumentsModule,
+  InfrastructureModule,
   InstallmentsPanel,
   ReportsModule,
   TasksModule,
@@ -27,7 +28,7 @@ import {
 } from "@/lib/crm-pro";
 import { neonClient } from "@/lib/neon";
 
-type SuiteModule = "crm" | "client360" | "tasks" | "documents" | "installments" | "alerts" | "reports";
+type SuiteModule = "crm" | "client360" | "infrastructure" | "tasks" | "documents" | "installments" | "alerts" | "reports";
 
 type Props = {
   initialClients: Client[];
@@ -42,6 +43,7 @@ type DataRow = Record<string, unknown>;
 const MODULES: Array<{ id: SuiteModule; label: string; icon: string; eyebrow: string; title: string }> = [
   { id: "crm", label: "CRM principal", icon: "⌂", eyebrow: "GESTÃO COMERCIAL", title: "Central de negócios" },
   { id: "client360", label: "Cliente 360°", icon: "◉", eyebrow: "RELACIONAMENTO", title: "Ficha completa do cliente" },
+  { id: "infrastructure", label: "Infraestrutura", icon: "◈", eyebrow: "SITES E TECNOLOGIA", title: "Sites, acessos, renovações e custos" },
   { id: "tasks", label: "Agenda", icon: "✓", eyebrow: "OPERAÇÃO DIÁRIA", title: "Tarefas e histórico" },
   { id: "documents", label: "Documentos", icon: "▤", eyebrow: "COMERCIAL", title: "Propostas, contratos e recibos" },
   { id: "installments", label: "Parcelas", icon: "R$", eyebrow: "CONTROLE FINANCEIRO", title: "Cronograma de recebimentos" },
@@ -119,6 +121,9 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     if (activeModule === "client360") {
       return <Client360Module clients={clients} projects={projects} payments={payments} audits={audits} />;
     }
+    if (activeModule === "infrastructure") {
+      return <InfrastructureModule clients={clients} projects={projects} />;
+    }
     if (activeModule === "tasks") {
       return <TasksModule clients={clients} projects={projects} />;
     }
@@ -173,7 +178,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
             </button>
           ))}
         </nav>
-        <div className="suite-help"><span>CENTRAL OPERACIONAL</span><strong>Do primeiro contato à renovação.</strong><small>Clientes, documentos, agenda, parcelas, alertas e relatórios ligados aos dados do CRM.</small></div>
+        <div className="suite-help"><span>CENTRAL OPERACIONAL</span><strong>Do primeiro contato à renovação.</strong><small>Clientes, sites, acessos, documentos, agenda, parcelas, alertas e relatórios ligados aos dados do CRM.</small></div>
         <div className="suite-user"><div>{initials(user.name)}</div><section><strong>{user.name}</strong><small>{user.email}</small></section><button type="button" onClick={signOut} aria-label="Sair">↗</button></div>
       </aside>
 
