@@ -19,6 +19,7 @@ function text(value: unknown, maxLength = 500_000): string {
 
 function connectionCandidates(): Array<[string, string]> {
   const keys = [
+    "CRM_DATABASE_URL",
     "POSTGRES_URL",
     "DATABASE_URL_UNPOOLED",
     "POSTGRES_URL_NON_POOLING",
@@ -39,7 +40,7 @@ function connectionCandidates(): Array<[string, string]> {
 
 async function connectDatabase(): Promise<DatabaseConnection> {
   const candidates = connectionCandidates();
-  if (!candidates.length) throw new Error("Configuração segura do banco não encontrada.");
+  if (!candidates.length) throw new Error("Conexão segura da assinatura não configurada.");
 
   for (const [key, url] of candidates) {
     try {
@@ -52,7 +53,7 @@ async function connectDatabase(): Promise<DatabaseConnection> {
     }
   }
 
-  throw new Error(`Banco de contratos não encontrado nas conexões configuradas.`);
+  throw new Error("Conexão segura da assinatura não configurada para o banco do CRM.");
 }
 
 function errorMessage(reason: unknown): string {
@@ -70,6 +71,7 @@ function errorMessage(reason: unknown): string {
     "Assinatura inválida",
     "A versão do documento foi alterada",
     "Este documento já foi assinado",
+    "Conexão segura da assinatura não configurada",
   ];
   return known.find((item) => message.includes(item)) || "Não foi possível concluir a assinatura. Confira o código e tente novamente.";
 }
