@@ -5,6 +5,10 @@ import { FormEvent, useState } from "react";
 import { requestPasswordReset } from "@/lib/auth-password";
 import styles from "../auth-recovery.module.css";
 
+function isConnectivityError(message: string): boolean {
+  return /network|fetch|timeout|não respondeu|indisponível|unavailable/i.test(message);
+}
+
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,13 +20,25 @@ export default function ForgotPasswordPage() {
     setError("");
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") || "").trim();
+    const email = String(formData.get("email") || "").trim().toLocaleLowerCase("pt-BR");
+
+    if (!email) {
+      setError("Informe o e-mail da conta.");
+      setLoading(false);
+      return;
+    }
 
     try {
       await requestPasswordReset(email, `${window.location.origin}/reset-password`);
       setSent(true);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível solicitar a redefinição.");
+      const message = reason instanceof Error ? reason.message : "";
+      if (isConnectivityError(message)) {
+        setError("O serviço de autenticação não respondeu. Tente novamente.");
+      } else {
+        // Evita revelar publicamente se um endereço possui ou não uma conta.
+        setSent(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -52,18 +68,18 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit}>
               <label>
                 E-mail da conta
-                <input name="email" type="email" required autoComplete="email" defaultValue="lucasnassuato2025@gmail.com" placeholder="seu@email.com" />
+                <input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" />
               </label>
               {error && <p className="pro-auth-error" role="alert">{error}</p>}
               <button type="submit" disabled={loading}>{loading ? "Enviando link..." : "Enviar link de redefinição"}</button>
             </form>
           ) : (
-            <div className={styles.success} role="status">
-              Solicitação enviada. Verifique a caixa de entrada e também as pastas Spam ou Lixo eletrônico.
+            <div className={styles.success} role="status" aria-live="polite">
+              Se esse endereço estiver autorizado, o link de redefinição será enviado. Verifique também Spam e Lixo eletrônico.
             </div>
           )}
 
-          <p className={styles.hint}>Por segurança, o sistema não confirma publicamente se outros endereços possuem conta.</p>
+          <p className={styles.hint}>Por segurança, o sistema nunca informa publicamente se um endereço possui conta.</p>
           <a className={styles.backLink} href="/sign-in">← Voltar para o login</a>
         </div>
       </section>
