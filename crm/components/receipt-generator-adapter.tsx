@@ -10,6 +10,18 @@ function findTypeSelect(modal: Element): HTMLSelectElement | null {
   return labelStartsWith(modal, "Tipo")?.querySelector("select") || null;
 }
 
+function setLabelTitle(label: HTMLLabelElement | null, receiptTitle: string, receipt: boolean) {
+  if (!label) return;
+  const textNode = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+  if (!textNode) return;
+  if (!label.dataset.originalTitle) label.dataset.originalTitle = textNode.textContent?.trim() || "";
+  textNode.textContent = receipt ? receiptTitle : label.dataset.originalTitle;
+}
+
+function toggleHidden(label: HTMLLabelElement | null, hidden: boolean) {
+  label?.classList.toggle("receipt-field-hidden", hidden);
+}
+
 function ensureBanner(modal: Element, receipt: boolean) {
   let banner = modal.querySelector<HTMLElement>(".receipt-generator-banner");
   if (!receipt) {
@@ -46,15 +58,18 @@ function applyReceiptMode() {
     adaptReceiptCards();
     return;
   }
+
   const typeSelect = findTypeSelect(modal);
   const receipt = typeSelect?.value === "recibo";
   modal.classList.toggle("receipt-generator-mode", receipt);
   ensureBanner(modal, receipt);
 
-  const scope = labelStartsWith(modal, "Escopo e entregas");
-  const payment = labelStartsWith(modal, "Condições de pagamento");
-  if (scope) scope.dataset.receiptLabel = receipt ? "Referente ao pagamento" : "";
-  if (payment) payment.dataset.receiptLabel = receipt ? "Forma e data do pagamento" : "";
+  setLabelTitle(labelStartsWith(modal, "Escopo e entregas") || labelStartsWith(modal, "Referente ao pagamento"), "Referente ao pagamento", receipt);
+  setLabelTitle(labelStartsWith(modal, "Condições de pagamento") || labelStartsWith(modal, "Forma e data do pagamento"), "Forma e data do pagamento", receipt);
+  setLabelTitle(labelStartsWith(modal, "Observações"), "Observações do recibo", receipt);
+
+  toggleHidden(labelStartsWith(modal, "Validade"), receipt);
+  toggleHidden(labelStartsWith(modal, "Condições complementares"), receipt);
 
   adaptReceiptCards();
 }
