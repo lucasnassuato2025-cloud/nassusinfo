@@ -1,0 +1,52 @@
+.cepField {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+}
+
+.labelText {
+  font-weight: 600;
+}
+
+.cepRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.cepRow button {
+  min-height: 44px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.status {
+  min-height: 18px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted, #94a3b8);
+}
+
+.loading {
+  color: #7dd3fc;
+}
+
+.success {
+  color: #86efac;
+}
+
+.error {
+  color: #fca5a5;
+}
+
+@media (max-width: 640px) {
+  .cepRow {
+    grid-template-columns: 1fr;
+  }
+
+  .cepRow button {
+    width: 100%;
+  }
+}
