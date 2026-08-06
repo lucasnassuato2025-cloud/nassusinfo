@@ -46,7 +46,7 @@ function errorMessage(reason: unknown): string {
   return known.find((item) => message.includes(item)) || "Não foi possível concluir a assinatura. Confira o código e tente novamente.";
 }
 
-async function openDocument(sql: ReturnType<typeof neon>, tokenHash: string, codeHash: string) {
+async function openDocument(sql: any, tokenHash: string, codeHash: string) {
   const rows = await sql`
     select public.public_open_signing_document(
       ${tokenHash},
