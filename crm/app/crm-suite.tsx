@@ -119,6 +119,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
   const [audits, setAudits] = useState(initialAudits);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState("");
+  const [syncNotice, setSyncNotice] = useState("");
   const [dataVersion, setDataVersion] = useState(0);
 
   const allowedModules = useMemo(() => MODULES.filter((item) => permissionAllowed(access, item.permission)), [access]);
@@ -161,6 +162,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     async function refreshData() {
       setRefreshing(true);
       setRefreshError("");
+      setSyncNotice("");
       try {
         const claim = await (neonClient as any).rpc("crm_claim_membership");
         if (claim.error) throw claim.error;
@@ -171,16 +173,28 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
           neonClient.from("site_audits").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: false }),
         ]);
         if (!active) return;
-        const error = clientQuery.error || projectQuery.error || paymentQuery.error || auditQuery.error;
-        if (error) throw error;
+
+        // O cadastro de clientes é essencial. Os demais conjuntos são independentes e não devem bloquear o módulo.
+        if (clientQuery.error) throw clientQuery.error;
         setClients(rows(clientQuery.data).map(mapClient));
-        setProjects(rows(projectQuery.data).map(mapProject));
-        setPayments(rows(paymentQuery.data).map(mapPayment));
-        setAudits(rows(auditQuery.data).map(mapSiteAudit));
+
+        const unavailable: string[] = [];
+        if (projectQuery.error) unavailable.push("projetos");
+        else setProjects(rows(projectQuery.data).map(mapProject));
+
+        if (paymentQuery.error) unavailable.push("pagamentos");
+        else setPayments(rows(paymentQuery.data).map(mapPayment));
+
+        if (auditQuery.error) unavailable.push("auditorias");
+        else setAudits(rows(auditQuery.data).map(mapSiteAudit));
+
+        if (unavailable.length) {
+          setSyncNotice(`Clientes carregados. Não foi possível atualizar temporariamente: ${unavailable.join(", ")}.`);
+        }
       } catch (reason) {
         if (!active) return;
         const message = reason && typeof reason === "object" && "message" in reason ? String((reason as { message?: unknown }).message || "") : "";
-        setRefreshError(/permission|row-level security/i.test(message) ? "Seu cargo não possui acesso aos dados necessários para este módulo." : message || "Não foi possível atualizar os dados.");
+        setRefreshError(/permission|row-level security/i.test(message) ? "Seu cargo não possui acesso aos clientes deste workspace." : message || "Não foi possível atualizar os clientes.");
       } finally {
         if (active) setRefreshing(false);
       }
@@ -224,7 +238,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
       </aside>
       <main className="suite-main">
         <header className="suite-topbar"><div className="suite-title-block"><span>{definition.eyebrow}</span><h1>{definition.title}</h1><p>{definition.description}</p></div><div className="suite-topbar-actions"><div className="suite-live"><i />Dados sincronizados</div><button type="button" className="suite-back" onClick={() => setActiveModule("crm")}><CRMIcon name="arrow-left" /><span>Voltar à central</span></button></div></header>
-        <div className="suite-content">{renderOperation()}</div>
+        <div className="suite-content">{syncNotice && <div className="business-notice">{syncNotice}</div>}{renderOperation()}</div>
       </main>
       <nav className="suite-mobile-nav" aria-label="Navegação móvel">{allowedModules.map((item) => <button type="button" key={item.id} className={activeModule === item.id ? "active" : ""} onClick={() => setActiveModule(item.id)}><i><CRMIcon name={item.icon} /></i><span>{item.label}</span></button>)}</nav>
     </div>
