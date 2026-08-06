@@ -5,6 +5,12 @@ on:
     paths:
       - "crm/**"
       - ".github/workflows/crm-check.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "crm/**"
+      - ".github/workflows/crm-check.yml"
   workflow_dispatch:
 
 permissions:
