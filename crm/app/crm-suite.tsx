@@ -54,6 +54,12 @@ type AccessProfile = {
   isOwner: boolean;
 };
 
+type MembershipClaim = {
+  workspaceOwnerId?: string;
+  role?: string;
+  status?: string;
+};
+
 type ModuleDefinition = {
   id: SuiteModule;
   label: string;
@@ -85,8 +91,21 @@ function initials(name: string): string {
 }
 
 function fallbackAccess(user: Props["user"]): AccessProfile {
-  const owner = user.email.toLocaleLowerCase("pt-BR") === "lucasnassuato2025@gmail.com";
-  return { name: user.name, email: user.email, role: owner ? "owner" : "viewer", permissions: owner ? { "*": true } : {}, status: owner ? "active" : "loading", isOwner: owner };
+  return { name: user.name, email: user.email, role: "viewer", permissions: {}, status: "loading", isOwner: false };
+}
+
+function accessFromClaim(user: Props["user"], claim: MembershipClaim | null | undefined): AccessProfile {
+  const role = String(claim?.role || "viewer");
+  const privileged = role === "owner" || role === "admin";
+  return {
+    workspaceOwnerId: claim?.workspaceOwnerId,
+    name: user.name,
+    email: user.email,
+    role,
+    permissions: privileged ? { "*": true } : {},
+    status: String(claim?.status || "active"),
+    isOwner: role === "owner",
+  };
 }
 
 function permissionAllowed(access: AccessProfile, permission: string) {
@@ -131,26 +150,29 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     let active = true;
     async function loadAccess() {
       try {
-        const claim = await (neonClient as any).rpc("crm_claim_membership");
-        if (claim.error) throw claim.error;
+        const claimResult = await (neonClient as any).rpc("crm_claim_membership");
+        if (claimResult.error) throw claimResult.error;
+        const claimAccess = accessFromClaim(user, claimResult.data as MembershipClaim | null);
         const query = await (neonClient as any).rpc("crm_my_access");
         if (!active) return;
         if (query.error || !query.data || query.data.status === "unauthorized") {
-          const fallback = fallbackAccess(user);
-          setAccess(fallback);
-          if (!fallback.isOwner) setRefreshError("Este e-mail ainda não foi autorizado na equipe do CRM.");
+          setAccess(claimAccess);
+          if (claimAccess.status !== "active") setRefreshError("Este acesso não está ativo no workspace do CRM.");
         } else {
           setAccess({ ...query.data, permissions: query.data.permissions || {} } as AccessProfile);
         }
       } catch {
-        if (active) setAccess(fallbackAccess(user));
+        if (active) {
+          setAccess(fallbackAccess(user));
+          setRefreshError("Não foi possível validar seu cargo e permissões. Entre novamente no CRM.");
+        }
       } finally {
         if (active) setAccessLoading(false);
       }
     }
     void loadAccess();
     return () => { active = false; };
-  }, [user.email]);
+  }, [user.email, user.name]);
 
   useEffect(() => {
     if (!allowedModules.some((item) => item.id === activeModule)) setActiveModule(allowedModules[0]?.id || "crm");
@@ -174,7 +196,6 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
         ]);
         if (!active) return;
 
-        // O cadastro de clientes é essencial. Os demais conjuntos são independentes e não devem bloquear o módulo.
         if (clientQuery.error) throw clientQuery.error;
         setClients(rows(clientQuery.data).map(mapClient));
 
