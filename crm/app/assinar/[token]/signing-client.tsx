@@ -18,7 +18,7 @@ type SignResult = {
   signed_at: string;
   document_hash: string;
   signer_name: string;
-  signer_document: string;
+  signer_document?: string;
 };
 
 function value(record: Record<string, unknown>, key: string): string {
@@ -27,7 +27,15 @@ function value(record: Record<string, unknown>, key: string): string {
 }
 
 function fullAddress(record: Record<string, unknown>): string {
-  return [value(record, "address"), value(record, "addressNumber"), value(record, "complement"), value(record, "neighborhood"), value(record, "city"), value(record, "state"), value(record, "zipCode")].filter(Boolean).join(", ");
+  return [
+    value(record, "address"),
+    value(record, "addressNumber"),
+    value(record, "complement"),
+    value(record, "neighborhood"),
+    value(record, "city"),
+    value(record, "state"),
+    value(record, "zipCode"),
+  ].filter(Boolean).join(", ");
 }
 
 function dateLabel(date: string | null): string {
@@ -45,7 +53,6 @@ function Paragraphs({ text }: { text: string }) {
 
 export default function SigningClient({ token }: { token: string }) {
   const [code, setCode] = useState("");
-  const [documentNumber, setDocumentNumber] = useState("");
   const [data, setData] = useState<OpenResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
@@ -103,7 +110,9 @@ export default function SigningClient({ token }: { token: string }) {
 
   function stopDrawing(event: PointerEvent<HTMLCanvasElement>) {
     drawingRef.current = false;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   function clearSignature() {
@@ -118,11 +127,13 @@ export default function SigningClient({ token }: { token: string }) {
     setLoading(true);
     setNotice("");
     try {
-      const [tokenHash, codeHash] = await Promise.all([sha256Hex(token), sha256Hex(code.trim())]);
+      const [tokenHash, codeHash] = await Promise.all([
+        sha256Hex(token),
+        sha256Hex(code.trim()),
+      ]);
       const result = await callPublicSigningRpc<OpenResult>("public_open_signing_document", {
         p_token_hash: tokenHash,
         p_access_code_hash: codeHash,
-        p_signer_document: documentNumber,
       });
       setData(result);
       const client = result.document.client;
@@ -143,15 +154,20 @@ export default function SigningClient({ token }: { token: string }) {
       setNotice("Desenhe sua assinatura no campo indicado.");
       return;
     }
+
     setLoading(true);
     setNotice("");
     try {
-      const signatureData = method === "typed" ? signerName.trim() : canvasRef.current?.toDataURL("image/png") || "";
-      const [tokenHash, codeHash] = await Promise.all([sha256Hex(token), sha256Hex(code.trim())]);
+      const signatureData = method === "typed"
+        ? signerName.trim()
+        : canvasRef.current?.toDataURL("image/png") || "";
+      const [tokenHash, codeHash] = await Promise.all([
+        sha256Hex(token),
+        sha256Hex(code.trim()),
+      ]);
       const result = await callPublicSigningRpc<SignResult>("public_submit_document_signature", {
         p_token_hash: tokenHash,
         p_access_code_hash: codeHash,
-        p_signer_document: documentNumber,
         p_signer_name: signerName,
         p_signer_email: signerEmail,
         p_signer_phone: signerPhone,
@@ -177,14 +193,26 @@ export default function SigningClient({ token }: { token: string }) {
           <div className="sign-lock-icon">✓</div>
           <span className="sign-eyebrow">LINK PRIVADO</span>
           <h1>Acesse o documento para leitura e assinatura</h1>
-          <p>Informe o código enviado separadamente e o CPF, CNPJ ou RG combinado com a Nassusinfo.</p>
+          <p>Informe somente o código de acesso enviado pela Nassusinfo.</p>
           {notice && <div className="sign-notice sign-error">{notice}</div>}
           <form onSubmit={unlock} className="sign-unlock-form">
-            <label>Código de acesso<input inputMode="numeric" maxLength={6} required value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" /></label>
-            <label>CPF, CNPJ ou RG<input required value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} placeholder="Documento do contratante" /></label>
-            <button type="submit" disabled={loading}>{loading ? "Verificando..." : "Abrir documento"}</button>
+            <label>
+              Código de acesso
+              <input
+                inputMode="numeric"
+                maxLength={6}
+                required
+                autoFocus
+                value={code}
+                onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+              />
+            </label>
+            <button type="submit" disabled={loading || code.length !== 6}>
+              {loading ? "Verificando..." : "Abrir documento"}
+            </button>
           </form>
-          <small className="sign-privacy">O código, a identificação e o link são usados para restringir o acesso e compor a trilha de auditoria.</small>
+          <small className="sign-privacy">O link privado e o código de acesso restringem a abertura do documento e compõem a trilha de auditoria.</small>
         </section>
       </main>
     );
@@ -219,28 +247,78 @@ export default function SigningClient({ token }: { token: string }) {
 
         <section className="sign-value"><div><span>Valor contratado</span><strong>{currency(snapshot.document.amount)}</strong></div><p>{snapshot.document.amountInWords}</p></section>
 
-        {snapshot.services.length > 0 && <section className="sign-section"><h2>Serviços contratados</h2><div className="sign-services">{snapshot.services.map((service, index) => <article key={`${service.name}-${index}`}><div><strong>{service.name}</strong><p>{service.description}</p></div><span>{currency(service.amount)}</span></article>)}</div></section>}
+        {snapshot.services.length > 0 && (
+          <section className="sign-section">
+            <h2>Serviços contratados</h2>
+            <div className="sign-services">
+              {snapshot.services.map((service, index) => (
+                <article key={`${service.name}-${index}`}>
+                  <div><strong>{service.name}</strong><p>{service.description}</p></div>
+                  <span>{currency(service.amount)}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="sign-section"><h2>Escopo e entregas</h2><Paragraphs text={snapshot.document.scope} /></section>
         <section className="sign-section"><h2>Forma e condições de pagamento</h2><Paragraphs text={snapshot.document.paymentTerms} /></section>
-        {snapshot.clauses.map((clause, index) => <section className="sign-section" key={`${clause.code}-${index}`}><h2>{index + 1}. {clause.title}</h2><Paragraphs text={clause.body} /></section>)}
+        {snapshot.clauses.map((clause, index) => (
+          <section className="sign-section" key={`${clause.code}-${index}`}>
+            <h2>{index + 1}. {clause.title}</h2>
+            <Paragraphs text={clause.body} />
+          </section>
+        ))}
         {snapshot.document.terms && <section className="sign-section"><h2>Condições complementares</h2><Paragraphs text={snapshot.document.terms} /></section>}
         {snapshot.document.notes && <section className="sign-section"><h2>Observações</h2><Paragraphs text={snapshot.document.notes} /></section>}
 
-        <footer className="sign-hash"><span>HASH SHA-256 DA VERSÃO</span><code>{data.document_hash}</code><small>O hash identifica exatamente o conteúdo apresentado nesta assinatura.</small></footer>
+        <footer className="sign-hash">
+          <span>HASH SHA-256 DA VERSÃO</span>
+          <code>{data.document_hash}</code>
+          <small>O hash identifica exatamente o conteúdo apresentado nesta assinatura.</small>
+        </footer>
       </article>
 
       {!signed ? (
         <form onSubmit={submitSignature} className="sign-form-card">
           <div className="sign-form-head"><span>ASSINATURA DO CONTRATANTE</span><h2>Confirme seus dados e assine</h2><p>Leia o documento integralmente antes de continuar.</p></div>
-          <div className="sign-fields"><label>Nome completo<input required minLength={3} value={signerName} onChange={(event) => setSignerName(event.target.value)} /></label><label>E-mail<input type="email" value={signerEmail} onChange={(event) => setSignerEmail(event.target.value)} /></label><label>WhatsApp / telefone<input value={signerPhone} onChange={(event) => setSignerPhone(event.target.value)} /></label></div>
-          <div className="sign-methods"><button type="button" className={method === "typed" ? "active" : ""} onClick={() => setMethod("typed")}>Nome digitado</button><button type="button" className={method === "drawn" ? "active" : ""} onClick={() => setMethod("drawn")}>Desenhar assinatura</button></div>
-          {method === "typed" ? <div className="sign-typed-preview">{signerName || "Sua assinatura aparecerá aqui"}</div> : <div className="sign-canvas-wrap"><canvas ref={canvasRef} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={stopDrawing} onPointerCancel={stopDrawing} /><button type="button" onClick={clearSignature}>Limpar</button></div>}
-          <label className="sign-consent"><input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>Declaro que li integralmente o documento, compreendi suas condições, reconheço os dados apresentados e concordo em assiná-lo eletronicamente.</span></label>
-          <div className="sign-legal-note"><strong>Importante</strong><p>Esta é uma assinatura eletrônica realizada dentro do Nassus CRM, com identificação, código de acesso, versão, hash e registros técnicos. Ela não é um certificado ICP-Brasil nem uma assinatura Gov.br.</p></div>
+          <div className="sign-fields">
+            <label>Nome completo<input required minLength={3} value={signerName} onChange={(event) => setSignerName(event.target.value)} /></label>
+            <label>E-mail<input type="email" value={signerEmail} onChange={(event) => setSignerEmail(event.target.value)} /></label>
+            <label>WhatsApp / telefone<input value={signerPhone} onChange={(event) => setSignerPhone(event.target.value)} /></label>
+          </div>
+
+          <div className="sign-methods">
+            <button type="button" className={method === "typed" ? "active" : ""} onClick={() => setMethod("typed")}>Nome digitado</button>
+            <button type="button" className={method === "drawn" ? "active" : ""} onClick={() => setMethod("drawn")}>Desenhar assinatura</button>
+          </div>
+
+          {method === "typed" ? (
+            <div className="sign-typed-preview">{signerName || "Sua assinatura aparecerá aqui"}</div>
+          ) : (
+            <div className="sign-canvas-wrap">
+              <canvas ref={canvasRef} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={stopDrawing} onPointerCancel={stopDrawing} />
+              <button type="button" onClick={clearSignature}>Limpar</button>
+            </div>
+          )}
+
+          <label className="sign-consent">
+            <input type="checkbox" required checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+            <span>Declaro que li integralmente o documento, compreendi suas condições, reconheço os dados apresentados e concordo em assiná-lo eletronicamente.</span>
+          </label>
+
+          <div className="sign-legal-note"><strong>Importante</strong><p>Esta é uma assinatura eletrônica realizada dentro do Nassus CRM, com link privado, código de acesso, versão, hash e registros técnicos. Ela não é um certificado ICP-Brasil nem uma assinatura Gov.br.</p></div>
           <button type="submit" className="sign-submit" disabled={loading}>{loading ? "Registrando assinatura..." : "Assinar documento"}</button>
         </form>
       ) : (
-        <section className="sign-complete-card"><div>✓</div><span>ASSINATURA CONCLUÍDA</span><h2>{signed.signer_name}</h2><p>Assinatura registrada em {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "medium" }).format(new Date(signed.signed_at))}.</p><code>{signed.document_hash}</code><button type="button" onClick={() => window.print()}>Imprimir / salvar em PDF</button></section>
+        <section className="sign-complete-card">
+          <div>✓</div>
+          <span>ASSINATURA CONCLUÍDA</span>
+          <h2>{signed.signer_name}</h2>
+          <p>Assinatura registrada em {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeStyle: "medium" }).format(new Date(signed.signed_at))}.</p>
+          <code>{signed.document_hash}</code>
+          <button type="button" onClick={() => window.print()}>Imprimir / salvar em PDF</button>
+        </section>
       )}
     </main>
   );
