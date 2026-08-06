@@ -1,0 +1,32 @@
+.document-card-pro:has(.type-recibo) dl > div:nth-child(3) dt,
+.document-card-pro:has(.type-recibo) dl > div:nth-child(3) dd {
+  font-size: 0;
+}
+
+.document-card-pro:has(.type-recibo) dl > div:nth-child(3) dt::after {
+  content: "Autenticação";
+  font-size: 10px;
+}
+
+.document-card-pro:has(.type-recibo) dl > div:nth-child(3) dd::after {
+  content: "Emissor eletrônico";
+  font-size: 11px;
+  color: var(--nx-green);
+}
+
+.contract-editor:has(select option[value="recibo"]:checked) form::before {
+  content: "Recibos não exigem assinatura do cliente. O PDF será autenticado eletronicamente apenas pelo emissor.";
+  display: block;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(57, 217, 138, .24);
+  border-radius: 12px;
+  background: rgba(57, 217, 138, .08);
+  color: #bff6d9;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.contract-editor:has(select option[value="recibo"]:checked) .contract-selector {
+  display: none;
+}
