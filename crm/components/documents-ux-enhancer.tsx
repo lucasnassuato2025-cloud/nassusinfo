@@ -18,6 +18,10 @@ function findButton(scope: ParentNode, labels: string[]): HTMLButtonElement | nu
   }) || null;
 }
 
+function setText(element: HTMLElement | null, text: string) {
+  if (element && element.textContent !== text) element.textContent = text;
+}
+
 function openContractEditor() {
   const panel = document.querySelector<HTMLElement>(".document-center-panel");
   const contractButton = panel ? findButton(panel, ["+ contrato", "novo contrato", "criar contrato"]) : null;
@@ -45,7 +49,8 @@ function enhanceDocumentCards() {
       const signingButton = findButton(footer, ["gerar link", "novo link", "enviar para assinatura", "gerar novo link"]);
       if (signingButton) {
         const alreadyActive = normalizeText(signingButton.textContent).includes("novo");
-        signingButton.textContent = alreadyActive ? "Gerar novo link" : "Enviar para assinatura";
+        const desiredText = alreadyActive ? "Gerar novo link" : "Enviar para assinatura";
+        setText(signingButton, desiredText);
         signingButton.title = alreadyActive
           ? "Revogar o link anterior e criar outro link de assinatura"
           : "Criar link privado e código para o cliente assinar";
@@ -88,11 +93,10 @@ function enhanceDocumentsGuide() {
   const contractCount = Array.from(document.querySelectorAll<HTMLElement>(".document-card-pro .document-type"))
     .filter((item) => normalizeText(item.textContent).includes("contrato")).length;
   const message = guide.querySelector<HTMLElement>("[data-signature-guide-message]");
-  if (message) {
-    message.textContent = contractCount > 0
-      ? "Seus contratos aparecem abaixo. Use o botão azul no card para criar o link privado."
-      : "Você ainda não possui contrato salvo. O único documento atual é um recibo, e recibos não geram link de assinatura.";
-  }
+  const desiredMessage = contractCount > 0
+    ? "Seus contratos aparecem abaixo. Use o botão azul no card para criar o link privado."
+    : "Você ainda não possui contrato salvo. O documento atual é um recibo, e recibos não geram link de assinatura.";
+  setText(message, desiredMessage);
 }
 
 function enhanceShareModal() {
@@ -137,9 +141,22 @@ function scanDocumentsExperience() {
 export function DocumentsUxEnhancer() {
   useEffect(() => {
     scanDocumentsExperience();
-    const observer = new MutationObserver(scanDocumentsExperience);
+
+    let frame = 0;
+    const observer = new MutationObserver(() => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        scanDocumentsExperience();
+      });
+    });
+
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+
+    return () => {
+      observer.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   return null;
