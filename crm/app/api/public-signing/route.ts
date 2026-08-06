@@ -39,6 +39,16 @@ function errorMessage(reason: unknown): string {
   return known.find((item) => message.includes(item)) || "Não foi possível concluir a assinatura. Confira o código e tente novamente.";
 }
 
+export async function GET() {
+  try {
+    const sql = neon(databaseUrl());
+    await sql`select 1 as ok`;
+    return NextResponse.json({ ok: true, service: "public-signing" }, { headers: { "Cache-Control": "no-store" } });
+  } catch {
+    return NextResponse.json({ ok: false, service: "public-signing" }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as SigningRequest;
