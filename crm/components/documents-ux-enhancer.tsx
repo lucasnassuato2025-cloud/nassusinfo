@@ -2,38 +2,97 @@
 
 import { useEffect } from "react";
 
+function normalizeText(value: string | null | undefined) {
+  return (value || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
+}
+
 function openWhatsApp(message: string) {
   window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
 }
 
+function findButton(scope: ParentNode, labels: string[]): HTMLButtonElement | null {
+  const normalizedLabels = labels.map(normalizeText);
+  return Array.from(scope.querySelectorAll<HTMLButtonElement>("button")).find((button) => {
+    const text = normalizeText(button.textContent);
+    return normalizedLabels.some((label) => text === label || text.includes(label));
+  }) || null;
+}
+
+function openContractEditor() {
+  const panel = document.querySelector<HTMLElement>(".document-center-panel");
+  const contractButton = panel ? findButton(panel, ["+ contrato", "novo contrato", "criar contrato"]) : null;
+
+  if (contractButton) {
+    contractButton.click();
+    return;
+  }
+
+  const documentsTab = findButton(document, ["documentos"]);
+  documentsTab?.click();
+  window.setTimeout(() => {
+    const refreshedPanel = document.querySelector<HTMLElement>(".document-center-panel");
+    findButton(refreshedPanel || document, ["+ contrato", "novo contrato", "criar contrato"])?.click();
+  }, 120);
+}
+
 function enhanceDocumentCards() {
-  for (const button of Array.from(document.querySelectorAll<HTMLButtonElement>(".document-card-pro footer button"))) {
-    const text = button.textContent?.trim();
-    if (text === "Gerar link") {
-      button.textContent = "Enviar para assinatura";
-      button.title = "Criar link privado e código para o cliente assinar";
-    } else if (text === "Novo link") {
-      button.textContent = "Gerar novo link";
-      button.title = "Revoga o link anterior e cria outro para reenviar";
+  for (const card of Array.from(document.querySelectorAll<HTMLElement>(".document-card-pro"))) {
+    const type = normalizeText(card.querySelector(".document-type")?.textContent);
+    const footer = card.querySelector<HTMLElement>("footer");
+    if (!footer) continue;
+
+    if (type.includes("contrato")) {
+      const signingButton = findButton(footer, ["gerar link", "novo link", "enviar para assinatura", "gerar novo link"]);
+      if (signingButton) {
+        const alreadyActive = normalizeText(signingButton.textContent).includes("novo");
+        signingButton.textContent = alreadyActive ? "Gerar novo link" : "Enviar para assinatura";
+        signingButton.title = alreadyActive
+          ? "Revogar o link anterior e criar outro link de assinatura"
+          : "Criar link privado e código para o cliente assinar";
+        signingButton.classList.add("signature-main-action");
+      }
+    }
+
+    if (type.includes("recibo") && !footer.querySelector("[data-receipt-note='true']")) {
+      const note = document.createElement("small");
+      note.dataset.receiptNote = "true";
+      note.className = "receipt-signature-note";
+      note.textContent = "Recibos não geram link. Crie um contrato para assinatura.";
+      footer.append(note);
     }
   }
 }
 
 function enhanceDocumentsGuide() {
   const panel = document.querySelector<HTMLElement>(".document-center-panel");
-  if (!panel || document.querySelector("[data-signature-guide='true']")) return;
+  if (!panel) return;
 
-  const guide = document.createElement("aside");
-  guide.className = "signature-guide";
-  guide.dataset.signatureGuide = "true";
-  guide.innerHTML = `
-    <div class="signature-guide-icon" aria-hidden="true">↗</div>
-    <div>
-      <strong>Como enviar o contrato para assinatura</strong>
-      <span>No card do contrato, clique em <b>Enviar para assinatura</b>. O CRM abrirá o link privado e o código de acesso para copiar ou enviar pelo WhatsApp.</span>
-    </div>
-  `;
-  panel.before(guide);
+  let guide = document.querySelector<HTMLElement>("[data-signature-guide='true']");
+  if (!guide) {
+    guide = document.createElement("aside");
+    guide.className = "signature-guide signature-launcher";
+    guide.dataset.signatureGuide = "true";
+    guide.innerHTML = `
+      <div class="signature-guide-icon" aria-hidden="true">✍</div>
+      <div class="signature-guide-copy">
+        <strong>Contrato com assinatura pelo CRM</strong>
+        <span data-signature-guide-message></span>
+        <small><b>1.</b> Crie e salve o contrato. <b>2.</b> No card, clique em “Enviar para assinatura”. <b>3.</b> Copie o link e o código ou envie pelo WhatsApp.</small>
+      </div>
+      <button type="button" class="signature-launcher-button">Criar contrato para assinatura</button>
+    `;
+    panel.before(guide);
+    guide.querySelector<HTMLButtonElement>(".signature-launcher-button")?.addEventListener("click", openContractEditor);
+  }
+
+  const contractCount = Array.from(document.querySelectorAll<HTMLElement>(".document-card-pro .document-type"))
+    .filter((item) => normalizeText(item.textContent).includes("contrato")).length;
+  const message = guide.querySelector<HTMLElement>("[data-signature-guide-message]");
+  if (message) {
+    message.textContent = contractCount > 0
+      ? "Seus contratos aparecem abaixo. Use o botão azul no card para criar o link privado."
+      : "Você ainda não possui contrato salvo. O único documento atual é um recibo, e recibos não geram link de assinatura.";
+  }
 }
 
 function enhanceShareModal() {
