@@ -1,0 +1,70 @@
+.signature-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(53, 212, 255, .22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(53, 212, 255, .10), rgba(124, 108, 255, .05));
+  box-shadow: inset 0 1px rgba(255, 255, 255, .04);
+}
+
+.signature-guide-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: rgba(53, 212, 255, .13);
+  color: #69ddff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.signature-guide > div:last-child {
+  display: grid;
+  gap: 4px;
+}
+
+.signature-guide strong {
+  color: #f5f8ff;
+  font-size: 14px;
+}
+
+.signature-guide span {
+  color: #98a5bb;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.signature-guide b {
+  color: #dff8ff;
+}
+
+.share-modal footer {
+  flex-wrap: wrap;
+}
+
+.share-modal footer .signature-whatsapp-button {
+  flex: 1 1 190px;
+  border-color: rgba(54, 211, 111, .28);
+  color: #a7f3c1;
+}
+
+.share-modal footer .signature-whatsapp-button:hover {
+  border-color: rgba(54, 211, 111, .55);
+  background: rgba(54, 211, 111, .08);
+}
+
+@media (max-width: 680px) {
+  .signature-guide {
+    padding: 14px;
+  }
+
+  .share-modal footer button {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
