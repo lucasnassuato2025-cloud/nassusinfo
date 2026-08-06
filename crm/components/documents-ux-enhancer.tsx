@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { neonClient } from "@/lib/neon";
+
 function normalizeText(value: string | null | undefined) {
   return (value || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
 }
@@ -20,6 +22,60 @@ function findButton(scope: ParentNode, labels: string[]): HTMLButtonElement | nu
 
 function setText(element: HTMLElement | null, text: string) {
   if (element && element.textContent !== text) element.textContent = text;
+}
+
+function directChildText(card: HTMLElement, selector: string) {
+  return Array.from(card.children).find((child) => child.matches(selector))?.textContent?.trim() || "";
+}
+
+function showDeleteError(message: string) {
+  window.alert(message || "Não foi possível excluir o documento.");
+}
+
+async function deleteDocument(card: HTMLElement, button: HTMLButtonElement) {
+  const documentNumber = directChildText(card, "small");
+  const typeLabel = card.querySelector<HTMLElement>(".document-type")?.textContent?.trim() || "Documento";
+  const statusLabel = normalizeText(card.querySelector<HTMLElement>(".document-status")?.textContent);
+  const title = card.querySelector<HTMLHeadingElement>("h3")?.textContent?.trim() || typeLabel;
+
+  if (!documentNumber) {
+    showDeleteError("Não foi possível identificar este documento. Atualize a página e tente novamente.");
+    return;
+  }
+
+  const relatedWarning = "Também serão apagados o link de assinatura, versões, assinatura e histórico técnico vinculados. O cliente, o projeto e a cobrança permanecerão cadastrados.";
+  const confirmed = window.confirm(`Excluir ${typeLabel.toLowerCase()} ${documentNumber}?\n\n${title}\n\n${relatedWarning}\n\nEsta ação não pode ser desfeita.`);
+  if (!confirmed) return;
+
+  if (statusLabel.includes("assinado")) {
+    const typed = window.prompt(`Este documento está ASSINADO e pode ser uma prova jurídica.\n\nPara confirmar a exclusão definitiva, digite exatamente:\n${documentNumber}`);
+    if ((typed || "").trim() !== documentNumber) {
+      window.alert("Exclusão cancelada. O número informado não corresponde ao documento.");
+      return;
+    }
+  }
+
+  button.disabled = true;
+  const originalText = button.textContent || "Excluir";
+  button.textContent = "Excluindo...";
+
+  try {
+    const result = await (neonClient.from("commercial_documents") as any)
+      .delete()
+      .eq("number", documentNumber)
+      .select("id");
+
+    if (result.error) throw new Error(result.error.message || "Não foi possível excluir o documento.");
+    if (!Array.isArray(result.data) || result.data.length === 0) throw new Error("Documento não encontrado ou sem permissão para exclusão.");
+
+    card.remove();
+    window.alert(`${typeLabel} ${documentNumber} excluído com sucesso.`);
+    window.location.reload();
+  } catch (reason) {
+    button.disabled = false;
+    button.textContent = originalText;
+    showDeleteError(reason instanceof Error ? reason.message : "Não foi possível excluir o documento.");
+  }
 }
 
 function openContractEditor() {
@@ -64,6 +120,17 @@ function enhanceDocumentCards() {
       note.className = "receipt-signature-note";
       note.textContent = "Recibos não geram link. Crie um contrato para assinatura.";
       footer.append(note);
+    }
+
+    if (!footer.querySelector("[data-document-delete='true']")) {
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.dataset.documentDelete = "true";
+      deleteButton.className = "danger delete-document-action";
+      deleteButton.textContent = "Excluir";
+      deleteButton.title = "Excluir este documento e seus registros vinculados";
+      deleteButton.addEventListener("click", () => void deleteDocument(card, deleteButton));
+      footer.append(deleteButton);
     }
   }
 }
