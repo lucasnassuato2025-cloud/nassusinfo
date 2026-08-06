@@ -69,7 +69,7 @@ const MODULES: ModuleDefinition[] = [
   { id: "client360", label: "Cliente 360°", icon: "user", eyebrow: "RELACIONAMENTO", title: "Ficha completa do cliente", description: "Toda a jornada em uma única visão.", permission: "clients.view" },
   { id: "infrastructure", label: "Infraestrutura", icon: "infrastructure", eyebrow: "SITES E TECNOLOGIA", title: "Infraestrutura digital", description: "Sites, acessos, renovações e custos.", permission: "infrastructure.view" },
   { id: "tasks", label: "Agenda", icon: "calendar", eyebrow: "OPERAÇÃO DIÁRIA", title: "Agenda operacional", description: "Prioridades, prazos e histórico.", permission: "tasks.view" },
-  { id: "documents", label: "Documentos", icon: "document", eyebrow: "COMERCIAL", title: "Central de documentos", description: "Propostas, contratos e recibos.", permission: "documents.view" },
+  { id: "documents", label: "Documentos", icon: "document", eyebrow: "COMERCIAL", title: "Central de documentos", description: "Propostas, contratos e comprovantes de pagamento.", permission: "documents.view" },
   { id: "installments", label: "Parcelas", icon: "installments", eyebrow: "CONTROLE FINANCEIRO", title: "Cronograma financeiro", description: "Recebimentos e parcelas por vencimento.", permission: "finance.view" },
   { id: "alerts", label: "Alertas", icon: "bell", eyebrow: "CENTRAL DE ATENÇÃO", title: "Central de alertas", description: "Cobranças, entregas e renovações.", permission: "reports.view" },
   { id: "reports", label: "Relatórios", icon: "chart", eyebrow: "INTELIGÊNCIA DO NEGÓCIO", title: "Inteligência executiva", description: "Metas, tendências, riscos e exportação.", permission: "reports.view" },
@@ -100,6 +100,15 @@ function permissionAllowed(access: AccessProfile, permission: string) {
   return false;
 }
 
+function dataKey(clients: Client[], projects: Project[], payments: Payment[], audits: SiteAudit[]) {
+  return [
+    clients.map((item) => `${item.id}:${item.updatedAt}`).join("|"),
+    projects.map((item) => `${item.id}:${item.updatedAt}`).join("|"),
+    payments.map((item) => `${item.id}:${item.updatedAt}`).join("|"),
+    audits.map((item) => item.id).join("|"),
+  ].join("::");
+}
+
 export default function CRMSuite({ initialClients, initialProjects, initialPayments, initialAudits, user }: Props) {
   const [access, setAccess] = useState<AccessProfile>(() => fallbackAccess(user));
   const [accessLoading, setAccessLoading] = useState(true);
@@ -115,12 +124,14 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
   const allowedModules = useMemo(() => MODULES.filter((item) => permissionAllowed(access, item.permission)), [access]);
   const definition = allowedModules.find((item) => item.id === activeModule) || allowedModules[0] || MODULES[0];
   const canManageAdmin = permissionAllowed(access, "admin.manage");
+  const crmDataKey = useMemo(() => dataKey(clients, projects, payments, audits), [clients, projects, payments, audits]);
 
   useEffect(() => {
     let active = true;
     async function loadAccess() {
       try {
-        await (neonClient as any).rpc("crm_claim_membership");
+        const claim = await (neonClient as any).rpc("crm_claim_membership");
+        if (claim.error) throw claim.error;
         const query = await (neonClient as any).rpc("crm_my_access");
         if (!active) return;
         if (query.error || !query.data || query.data.status === "unauthorized") {
@@ -150,24 +161,29 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
     async function refreshData() {
       setRefreshing(true);
       setRefreshError("");
-      const [clientQuery, projectQuery, paymentQuery, auditQuery] = await Promise.all([
-        neonClient.from("clients").select(CLIENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
-        neonClient.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
-        neonClient.from("payments").select(PAYMENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
-        neonClient.from("site_audits").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: false }),
-      ]);
-      if (!active) return;
-      const error = clientQuery.error || projectQuery.error || paymentQuery.error || auditQuery.error;
-      if (error) {
-        const message = String(error.message || "");
-        setRefreshError(/permission|row-level security/i.test(message) ? "Seu cargo não possui acesso aos dados necessários para este módulo." : message || "Não foi possível atualizar os dados.");
-      } else {
+      try {
+        const claim = await (neonClient as any).rpc("crm_claim_membership");
+        if (claim.error) throw claim.error;
+        const [clientQuery, projectQuery, paymentQuery, auditQuery] = await Promise.all([
+          neonClient.from("clients").select(CLIENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
+          neonClient.from("projects").select(PROJECT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
+          neonClient.from("payments").select(PAYMENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
+          neonClient.from("site_audits").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: false }),
+        ]);
+        if (!active) return;
+        const error = clientQuery.error || projectQuery.error || paymentQuery.error || auditQuery.error;
+        if (error) throw error;
         setClients(rows(clientQuery.data).map(mapClient));
         setProjects(rows(projectQuery.data).map(mapProject));
         setPayments(rows(paymentQuery.data).map(mapPayment));
         setAudits(rows(auditQuery.data).map(mapSiteAudit));
+      } catch (reason) {
+        if (!active) return;
+        const message = reason && typeof reason === "object" && "message" in reason ? String((reason as { message?: unknown }).message || "") : "";
+        setRefreshError(/permission|row-level security/i.test(message) ? "Seu cargo não possui acesso aos dados necessários para este módulo." : message || "Não foi possível atualizar os dados.");
+      } finally {
+        if (active) setRefreshing(false);
       }
-      setRefreshing(false);
     }
     void refreshData();
     return () => { active = false; };
@@ -179,7 +195,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
   }
 
   function renderOperation() {
-    if (refreshing) return <div className="suite-loading"><i /><strong>Sincronizando sua operação</strong><span>Carregando os dados mais recentes com segurança.</span></div>;
+    if (refreshing) return <div className="suite-loading"><i /><strong>Sincronizando sua operação</strong><span>Carregando clientes, projetos e pagamentos atuais.</span></div>;
     if (refreshError) return <div className="suite-loading suite-loading-error"><strong>Não foi possível atualizar</strong><span>{refreshError}</span><button type="button" className="pro-primary" onClick={() => setActiveModule("crm")}>Voltar à central</button></div>;
     if (activeModule === "client360") return <Client360Module clients={clients} projects={projects} payments={payments} audits={audits} />;
     if (activeModule === "infrastructure") return <InfrastructureModule clients={clients} projects={projects} />;
@@ -194,7 +210,7 @@ export default function CRMSuite({ initialClients, initialProjects, initialPayme
   if (accessLoading) return <div className="suite-loading suite-loading-full"><i /><strong>Validando seu acesso</strong><span>Aplicando cargo e permissões do workspace.</span></div>;
 
   if (activeModule === "crm") {
-    return <><CRMPro initialClients={clients} initialProjects={projects} initialPayments={payments} initialAudits={audits} user={user} /><nav className="suite-dock" aria-label="Acesso rápido aos módulos operacionais">{allowedModules.filter((item) => item.id !== "crm").map((item) => <button type="button" key={item.id} title={item.description} onClick={() => setActiveModule(item.id)}><i><CRMIcon name={item.icon} /></i><span>{item.label}</span></button>)}</nav></>;
+    return <><CRMPro key={crmDataKey} initialClients={clients} initialProjects={projects} initialPayments={payments} initialAudits={audits} user={user} /><nav className="suite-dock" aria-label="Acesso rápido aos módulos operacionais">{allowedModules.filter((item) => item.id !== "crm").map((item) => <button type="button" key={item.id} title={item.description} onClick={() => setActiveModule(item.id)}><i><CRMIcon name={item.icon} /></i><span>{item.label}</span></button>)}</nav></>;
   }
 
   return (
