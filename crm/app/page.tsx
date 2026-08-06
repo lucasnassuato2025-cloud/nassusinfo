@@ -69,7 +69,6 @@ export default function HomePage() {
           return;
         }
 
-        // O workspace precisa ser reconhecido antes de qualquer consulta protegida por RLS.
         const claim = await (neonClient as any).rpc("crm_claim_membership");
         if (claim.error) throw new Error(claim.error.message || "Não foi possível validar o workspace.");
 
@@ -80,14 +79,14 @@ export default function HomePage() {
           neonClient.from("site_audits").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: false }),
         ]);
 
-        const firstError = clientQuery.error || projectQuery.error || paymentQuery.error || auditQuery.error;
-        if (firstError) throw new Error(firstError.message || "Não foi possível carregar os dados do CRM.");
+        // Clientes são a base do CRM. Falhas em módulos auxiliares não devem impedir a abertura do workspace.
+        if (clientQuery.error) throw new Error(clientQuery.error.message || "Não foi possível carregar os clientes.");
         if (!active) return;
 
         setClients(rows(clientQuery.data).map(mapClient));
-        setProjects(rows(projectQuery.data).map(mapProject));
-        setPayments(rows(paymentQuery.data).map(mapPayment));
-        setAudits(rows(auditQuery.data).map(mapSiteAudit));
+        if (!projectQuery.error) setProjects(rows(projectQuery.data).map(mapProject));
+        if (!paymentQuery.error) setPayments(rows(paymentQuery.data).map(mapPayment));
+        if (!auditQuery.error) setAudits(rows(auditQuery.data).map(mapSiteAudit));
         setUser({
           name: currentUser.name || currentUser.email.split("@")[0],
           email: currentUser.email,
