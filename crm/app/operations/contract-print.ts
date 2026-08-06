@@ -1,5 +1,6 @@
 import type { ContractSnapshot, DocumentSignature } from "./contract-utils";
 import { formatCurrency } from "./contract-utils";
+import { openReceiptPrint } from "./receipt-print";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -39,6 +40,11 @@ export function openDocumentPrint(
   hash: string,
   signature?: DocumentSignature | null,
 ) {
+  if (snapshot.document.type === "recibo") {
+    openReceiptPrint(snapshot, hash);
+    return;
+  }
+
   const popup = window.open("", "_blank", "width=980,height=800");
   if (!popup) throw new Error("O navegador bloqueou a janela de impressão.");
 
