@@ -1,0 +1,31 @@
+.cep-auto-status {
+  display: block;
+  min-height: 18px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+.cep-auto-status[data-state="loading"] {
+  color: #7dd3fc;
+}
+
+.cep-auto-status[data-state="success"] {
+  color: #86efac;
+}
+
+.cep-auto-status[data-state="error"] {
+  color: #fca5a5;
+}
+
+input[data-cep-loading="true"] {
+  background-image: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.08), transparent);
+  background-size: 220% 100%;
+  animation: cepLookupPulse 1.15s linear infinite;
+}
+
+@keyframes cepLookupPulse {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}
