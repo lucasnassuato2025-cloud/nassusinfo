@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 
@@ -6,25 +5,54 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const HASH_PATTERN = /^[a-f0-9]{64}$/i;
-const PROBE_SECRET = "2DJ-lc931IvS10NndhuUR8qq65WHIzgv";
 
 type SigningRequest = {
   name?: "public_open_signing_document" | "public_submit_document_signature";
   payload?: Record<string, unknown>;
 };
 
+type DatabaseConnection = { sql: any; key: string };
+
 function text(value: unknown, maxLength = 500_000): string {
   return String(value ?? "").trim().slice(0, maxLength);
 }
 
-function databaseUrl(): string {
-  const value = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-  if (!value) throw new Error("Configuração segura do banco não encontrada.");
-  return value;
+function connectionCandidates(): Array<[string, string]> {
+  const keys = [
+    "POSTGRES_URL",
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL_NON_POOLING",
+    "POSTGRES_PRISMA_URL",
+    "NEON_DATABASE_URL",
+    "DATABASE_URL",
+  ];
+  const seen = new Set<string>();
+  const result: Array<[string, string]> = [];
+  for (const key of keys) {
+    const value = process.env[key];
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    result.push([key, value]);
+  }
+  return result;
 }
 
-function hash(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
+async function connectDatabase(): Promise<DatabaseConnection> {
+  const candidates = connectionCandidates();
+  if (!candidates.length) throw new Error("Configuração segura do banco não encontrada.");
+
+  for (const [key, url] of candidates) {
+    try {
+      const sql = neon(url);
+      const rows = await sql`select to_regclass('public.document_signing_links')::text as relation`;
+      if (rows[0]?.relation) return { sql, key };
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : String(reason || "");
+      console.warn(`[public-signing] conexão ${key} indisponível: ${message}`);
+    }
+  }
+
+  throw new Error(`Banco de contratos não encontrado nas conexões configuradas.`);
 }
 
 function errorMessage(reason: unknown): string {
@@ -63,22 +91,10 @@ async function openDocument(sql: any, tokenHash: string, codeHash: string) {
   return rows[0]?.result ?? null;
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const sql = neon(databaseUrl());
-    const url = new URL(request.url);
-    const probe = url.searchParams.get("probe");
-    const token = url.searchParams.get("token") || "";
-    const code = url.searchParams.get("code") || "";
-
-    if (probe === PROBE_SECRET && token && code) {
-      const result = await openDocument(sql, hash(token), hash(code));
-      const record = result && typeof result === "object" ? result as Record<string, unknown> : {};
-      return NextResponse.json({ ok: true, status: record.status || null, hasDocument: Boolean(record.document) }, { headers: { "Cache-Control": "no-store" } });
-    }
-
-    await sql`select 1 as ok`;
-    return NextResponse.json({ ok: true, service: "public-signing" }, { headers: { "Cache-Control": "no-store" } });
+    const { key } = await connectDatabase();
+    return NextResponse.json({ ok: true, service: "public-signing", connection: key }, { headers: { "Cache-Control": "no-store" } });
   } catch (reason) {
     return NextResponse.json({ ok: false, message: errorMessage(reason) }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
@@ -95,7 +111,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Link ou código de acesso inválido." }, { status: 400 });
     }
 
-    const sql = neon(databaseUrl());
+    const { sql } = await connectDatabase();
 
     if (body.name === "public_open_signing_document") {
       const result = await openDocument(sql, tokenHash, codeHash);
