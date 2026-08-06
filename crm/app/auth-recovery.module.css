@@ -1,0 +1,54 @@
+.helperRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.35rem;
+}
+
+.recoveryLink {
+  color: #d9b35f;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.recoveryLink:hover {
+  text-decoration: underline;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: #c7cad1;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: #ffffff;
+}
+
+.success {
+  margin: 1rem 0 0;
+  border: 1px solid rgba(71, 194, 132, 0.35);
+  border-radius: 12px;
+  background: rgba(71, 194, 132, 0.09);
+  padding: 0.9rem 1rem;
+  color: #b9f5d4;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.hint {
+  margin-top: 0.9rem;
+  color: #969ba8;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.passwordRules {
+  margin: -0.25rem 0 0;
+  color: #969ba8;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
