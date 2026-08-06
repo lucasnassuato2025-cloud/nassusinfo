@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
 import { neonClient } from "@/lib/neon";
+import styles from "../auth-recovery.module.css";
 
 export default function SignInPage() {
   const [error, setError] = useState("");
@@ -78,6 +79,9 @@ export default function SignInPage() {
               Senha
               <input name="password" type="password" minLength={8} required autoComplete="current-password" placeholder="Mínimo de 8 caracteres" />
             </label>
+            <div className={styles.helperRow}>
+              <a className={styles.recoveryLink} href="/forgot-password">Esqueci minha senha</a>
+            </div>
             {error && <p className="pro-auth-error" role="alert">{error}</p>}
             <button type="submit" disabled={loading}>{loading ? "Validando acesso..." : "Entrar no CRM"}</button>
           </form>
