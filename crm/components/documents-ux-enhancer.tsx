@@ -43,7 +43,7 @@ async function deleteDocument(card: HTMLElement, button: HTMLButtonElement) {
     return;
   }
 
-  const relatedWarning = "Também serão apagados o link de assinatura, versões, assinatura e histórico técnico vinculados. O cliente, o projeto e a cobrança permanecerão cadastrados.";
+  const relatedWarning = "Também serão apagados o link de assinatura, versões, assinatura e históricos vinculados. O cliente, o projeto e a cobrança permanecerão cadastrados.";
   const confirmed = window.confirm(`Excluir ${typeLabel.toLowerCase()} ${documentNumber}?\n\n${title}\n\n${relatedWarning}\n\nEsta ação não pode ser desfeita.`);
   if (!confirmed) return;
 
@@ -67,6 +67,12 @@ async function deleteDocument(card: HTMLElement, button: HTMLButtonElement) {
 
     if (result.error) throw new Error(result.error.message || "Não foi possível excluir o documento.");
     if (!Array.isArray(result.data) || result.data.length === 0) throw new Error("Documento não encontrado ou sem permissão para exclusão.");
+
+    const activityResult = await (neonClient.from("client_activities") as any)
+      .delete()
+      .in("activity_type", ["documento_criado", "documento_atualizado", "contrato_enviado"])
+      .like("description", `${documentNumber}%`);
+    if (activityResult.error) console.warn("Não foi possível limpar toda a linha do tempo do documento:", activityResult.error.message);
 
     card.remove();
     window.alert(`${typeLabel} ${documentNumber} excluído com sucesso.`);
