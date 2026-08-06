@@ -1,13 +1,7 @@
 "use client";
 
-import { ReceiptGeneratorAdapter } from "@/components/receipt-generator-adapter";
-import { DocumentsModule as DocumentsCenter } from "./documents-center";
+import { DocumentsCenterV2 } from "./documents-center-v2";
 
-export function DocumentsModule(props: React.ComponentProps<typeof DocumentsCenter>) {
-  return (
-    <>
-      <ReceiptGeneratorAdapter />
-      <DocumentsCenter {...props} />
-    </>
-  );
+export function DocumentsModule(props: React.ComponentProps<typeof DocumentsCenterV2>) {
+  return <DocumentsCenterV2 {...props} />;
 }
