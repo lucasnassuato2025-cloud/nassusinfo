@@ -33,7 +33,15 @@ type DashboardUser = {
 type DataRow = Record<string, unknown>;
 
 function rows(value: unknown): DataRow[] {
-  return Array.isArray(value) ? (value as unknown as DataRow[]) : [];
+  return Array.isArray(value) ? value as DataRow[] : [];
+}
+
+function friendlyError(reason: unknown): string {
+  const message = reason instanceof Error ? reason.message : String((reason as { message?: unknown } | null)?.message || "");
+  if (/not authorized|não foi autorizado/i.test(message)) return "Este e-mail ainda não foi autorizado no workspace do CRM.";
+  if (/permission|row-level security/i.test(message)) return "O acesso ao workspace não foi concluído. Saia e entre novamente no CRM.";
+  if (/network|fetch|timeout/i.test(message)) return "Não foi possível conectar ao servidor. Verifique a internet e tente novamente.";
+  return message || "Não foi possível abrir o CRM.";
 }
 
 export default function HomePage() {
@@ -52,10 +60,7 @@ export default function HomePage() {
       try {
         const sessionResult = await neonClient.auth.getSession();
         const authData = sessionResult.data as
-          | {
-              user?: SessionUser | null;
-              session?: { user?: SessionUser | null } | null;
-            }
+          | { user?: SessionUser | null; session?: { user?: SessionUser | null } | null }
           | null;
         const currentUser = authData?.user ?? authData?.session?.user;
 
@@ -63,6 +68,10 @@ export default function HomePage() {
           window.location.replace("/sign-in");
           return;
         }
+
+        // O workspace precisa ser reconhecido antes de qualquer consulta protegida por RLS.
+        const claim = await (neonClient as any).rpc("crm_claim_membership");
+        if (claim.error) throw new Error(claim.error.message || "Não foi possível validar o workspace.");
 
         const [clientQuery, projectQuery, paymentQuery, auditQuery] = await Promise.all([
           neonClient.from("clients").select(CLIENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
@@ -84,8 +93,7 @@ export default function HomePage() {
           email: currentUser.email,
         });
       } catch (reason) {
-        if (!active) return;
-        setError(reason instanceof Error ? reason.message : "Não foi possível abrir o CRM.");
+        if (active) setError(friendlyError(reason));
       } finally {
         if (active) setLoading(false);
       }
@@ -100,7 +108,7 @@ export default function HomePage() {
       <main className="pro-boot">
         <div className="pro-boot-logo" aria-hidden="true" />
         <span>NASSUS CRM PRO</span>
-        <h1>Preparando sua central de negócios...</h1>
+        <h1>Validando o workspace e carregando seus dados...</h1>
         <div className="pro-boot-line"><i /></div>
       </main>
     );
