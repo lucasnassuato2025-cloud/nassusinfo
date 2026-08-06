@@ -1,0 +1,42 @@
+name: Atualizar link Health no portfólio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-health-portfolio-link.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trocar domínio no card Health
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          content = path.read_text(encoding='utf-8')
+          old = 'https://fisiobemestar.vercel.app/'
+          new = 'https://www.healthfisiobemestar.com.br/'
+          count = content.count(old)
+          if count != 2:
+              raise SystemExit(f'Esperava 2 links no card Health, encontrei {count}. Nenhuma alteração aplicada.')
+          path.write_text(content.replace(old, new), encoding='utf-8')
+          print(f'{count} links atualizados com segurança.')
+          PY
+
+      - name: Publicar correção
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Atualiza link do projeto Health no portfólio'
+          git push
