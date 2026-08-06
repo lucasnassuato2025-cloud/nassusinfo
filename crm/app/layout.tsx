@@ -14,6 +14,7 @@ import "./business-suite.css";
 import "./infrastructure.css";
 import "./black-edition.css";
 import "./black-edition-polish.css";
+import "./contracts-signing.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
