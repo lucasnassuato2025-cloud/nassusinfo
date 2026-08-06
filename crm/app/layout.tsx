@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
 
+import { CepAutofillAgent } from "@/components/cep-autofill-agent";
+
 import "./globals.css";
 import "./brand.css";
 import "./premium.css";
@@ -15,6 +17,7 @@ import "./infrastructure.css";
 import "./black-edition.css";
 import "./black-edition-polish.css";
 import "./contracts-signing.css";
+import "./cep-autofill.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
@@ -39,7 +42,10 @@ export const viewport: Viewport = { themeColor: "#060912", colorScheme: "dark" }
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className="nassus-black-edition">
-      <body className={`${inter.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
+        <CepAutofillAgent />
+        {children}
+      </body>
     </html>
   );
 }
