@@ -5,4 +5,5 @@ export { Client360Module } from "./client-360-module";
 export { DocumentsModule } from "./documents-module";
 export { AlertsModule } from "./alerts-module";
 export { InfrastructureModule } from "./infrastructure-module";
+export { AdministrationModule } from "./administration-module";
 export { recordActivity } from "./shared";
