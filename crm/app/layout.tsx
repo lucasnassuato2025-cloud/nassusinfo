@@ -20,6 +20,7 @@ import "./contracts-signing.css";
 import "./cep-autofill.css";
 import "./crm-v4.css";
 import "./receipt.css";
+import "./documents-v2.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
