@@ -5,8 +5,8 @@ type AuthResult = {
 };
 
 type PasswordAuthClient = {
-  requestPasswordReset?: (input: { email: string; redirectTo: string }) => Promise<AuthResult>;
-  resetPassword?: (input: { token: string; newPassword: string }) => Promise<AuthResult>;
+  requestPasswordReset: (input: { email: string; redirectTo: string }) => Promise<AuthResult>;
+  resetPassword: (input: { token: string; newPassword: string }) => Promise<AuthResult>;
 };
 
 function authClient(): PasswordAuthClient {
@@ -15,7 +15,7 @@ function authClient(): PasswordAuthClient {
 
 export async function requestPasswordReset(email: string, redirectTo: string) {
   const auth = authClient();
-  if (!auth.requestPasswordReset) {
+  if (typeof auth.requestPasswordReset !== "function") {
     throw new Error("A recuperação de senha ainda não está disponível neste ambiente.");
   }
 
@@ -31,7 +31,7 @@ export async function requestPasswordReset(email: string, redirectTo: string) {
 
 export async function resetPassword(token: string, newPassword: string) {
   const auth = authClient();
-  if (!auth.resetPassword) {
+  if (typeof auth.resetPassword !== "function") {
     throw new Error("A redefinição de senha ainda não está disponível neste ambiente.");
   }
 
