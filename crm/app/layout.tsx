@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
 
 import { CepAutofillAgent } from "@/components/cep-autofill-agent";
-import { DocumentsUxEnhancer } from "@/components/documents-ux-enhancer";
 
 import "./globals.css";
 import "./brand.css";
@@ -19,7 +18,7 @@ import "./black-edition.css";
 import "./black-edition-polish.css";
 import "./contracts-signing.css";
 import "./cep-autofill.css";
-import "./documents-ux-enhancer.css";
+import "./crm-v4.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
@@ -46,7 +45,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" className="nassus-black-edition">
       <body className={`${inter.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
         <CepAutofillAgent />
-        <DocumentsUxEnhancer />
         {children}
       </body>
     </html>
