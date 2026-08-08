@@ -19,6 +19,11 @@ export type WorkspaceBusiness = {
   phone?: string | null;
   email?: string | null;
   document?: string | null;
+  address?: string | null;
+  timezone?: string | null;
+  opening_hours?: Record<string, unknown> | null;
+  public_booking_enabled?: boolean;
+  booking_notice?: string | null;
 };
 
 export type Workspace = {
@@ -27,7 +32,7 @@ export type Workspace = {
   businesses: WorkspaceBusiness[];
 };
 
-const BUSINESS_COLUMNS = "id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document";
+const BUSINESS_COLUMNS = "id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document,address,timezone,opening_hours,public_booking_enabled,booking_notice";
 
 export async function loadWorkspace(): Promise<Workspace | null> {
   const user = await getCurrentUser();
@@ -89,6 +94,8 @@ export function friendlyWorkspaceError(reason: unknown): string {
   const message = reason instanceof Error ? reason.message : String((reason as { message?: unknown } | null)?.message || "");
   if (/CLIENT_LIMIT_REACHED/.test(message)) return "Você atingiu o limite de 90 clientes do plano Essencial.";
   if (/USER_LIMIT_REACHED/.test(message)) return "Você atingiu o limite de usuários do seu plano.";
+  if (/APPOINTMENT_CONFLICT/.test(message)) return "Esse profissional já possui um atendimento nesse horário. Escolha outro horário ou profissional.";
+  if (/TENANT_REFERENCE_MISMATCH/.test(message)) return "Um dos dados escolhidos não pertence à empresa atual.";
   if (/SUBSCRIPTION_REQUIRED/.test(message)) return "O período de teste terminou ou a assinatura precisa ser regularizada. Acesse Assinatura para continuar criando ou alterando dados.";
   if (/USER_NOT_FOUND/.test(message)) return "Esse e-mail ainda não possui uma conta no Nassus Gestão.";
   if (/ACCESS_DENIED|permission|row-level security/i.test(message)) return "Você não tem permissão para realizar esta ação.";
