@@ -33,14 +33,14 @@ function paymentMethodFromTerms(terms: string): string {
 
 function paymentMethodLabel(method: string): string {
   const labels: Record<string, string> = {
-    pix: "Pix",
+    pix: "PIX",
     credito: "Cartão de crédito",
     debito: "Cartão de débito",
-    boleto: "Boleto bancário",
+    boleto: "Boleto",
     dinheiro: "Dinheiro",
-    transferencia: "Transferência bancária",
+    transferencia: "Transferência",
     mercado_pago: "Mercado Pago",
-    outro: "Outro meio de pagamento",
+    outro: "Outro",
   };
   return labels[method] || method || "Não informada";
 }
@@ -49,10 +49,10 @@ function receiptCategory(type: string): string {
   const labels: Record<string, string> = {
     servico: "Serviço",
     produto: "Produto",
-    servico_produto: "Serviço e produto",
-    pagamento: "Serviço ou produto descrito",
+    servico_produto: "Serviço + produto",
+    pagamento: "Pagamento",
   };
-  return labels[type] || "Serviço ou produto descrito";
+  return labels[type] || "Pagamento";
 }
 
 function payerName(client: Record<string, unknown>): string {
@@ -74,17 +74,21 @@ function cleanReference(text: string): string {
     .replace(/^Recebimento referente a\s+/i, "")
     .replace(/^Pagamento referente a\s+/i, "")
     .replace(/\.$/, "")
-    .trim() || "pagamento recebido";
+    .trim() || "Pagamento recebido";
+}
+
+function compact(text: string, limit = 120): string {
+  return text.length > limit ? `${text.slice(0, Math.max(0, limit - 3)).trim()}...` : text;
 }
 
 function quittance(terms: string, paid: number, total: number): string {
   const normalized = terms.toLocaleLowerCase("pt-BR");
-  if (normalized.includes("parcial") || (paid > 0 && total > 0 && paid < total)) return "Quitação parcial";
-  return "Quitação total";
+  if (normalized.includes("parcial") || (paid > 0 && total > 0 && paid < total)) return "PARCIAL";
+  return "TOTAL";
 }
 
 export function openReceiptPrint(snapshot: ContractSnapshot, hash: string) {
-  const popup = window.open("", "_blank", "width=980,height=840");
+  const popup = window.open("", "_blank", "width=430,height=760");
   if (!popup) throw new Error("O navegador bloqueou a janela de impressão.");
 
   const issuer = snapshot.issuer || {};
@@ -97,106 +101,101 @@ export function openReceiptPrint(snapshot: ContractSnapshot, hash: string) {
   const paidAt = value(payment, "paidAt") || document.issueDate;
   const method = value(payment, "method") || paymentMethodFromTerms(document.paymentTerms || "");
   const category = receiptCategory(document.receiptType || "pagamento");
-  const reference = cleanReference(document.scope || value(payment, "description"));
+  const reference = compact(cleanReference(document.scope || value(payment, "description")));
   const payer = payerName(client);
   const receiver = issuerName(issuer);
   const payerDoc = documentLabel(client);
   const receiverDoc = documentLabel(issuer);
-  const city = [value(issuer, "city"), value(issuer, "state")].filter(Boolean).join(" / ") || "Guarujá / SP";
+  const city = [value(issuer, "city"), value(issuer, "state")].filter(Boolean).join("/") || "Guarujá/SP";
   const logoUrl = new URL("/api/brand-logo?v=10", window.location.origin).href;
   const safeHash = hash && hash !== "RASCUNHO" ? hash : `${document.number}-${document.version}`;
+  const hashReference = safeHash.length > 24 ? `${safeHash.slice(0, 12)}…${safeHash.slice(-8)}` : safeHash;
   const quittanceLabel = quittance(document.terms || "", amount, totalAmount);
+  const paymentReference = value(payment, "id");
 
   popup.document.write(`<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${escapeHtml(document.number)} — Comprovante de pagamento</title>
+  <title>${escapeHtml(document.number)} — Comprovante</title>
   <style>
-    @page{size:A4;margin:14mm}
+    @page{size:80mm 150mm;margin:4mm}
     *{box-sizing:border-box}
-    body{margin:0;background:#eef1f6;color:#171b24;font:13px/1.5 Arial,Helvetica,sans-serif}
-    .sheet{max-width:794px;margin:24px auto;background:#fff;border:1px solid #e1e5ec;box-shadow:0 12px 40px rgba(17,24,39,.12)}
-    .accent{height:7px;background:linear-gradient(90deg,#0d1017 0%,#232a37 72%,#c7a95b 100%)}
-    .page{padding:30px 34px 26px}
-    .top{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding-bottom:22px;border-bottom:1px solid #e5e8ee}
-    .brand{display:flex;gap:13px;align-items:center}.brand img{width:60px;height:60px;object-fit:contain}.brand strong{display:block;font-size:18px}.brand small{display:block;margin-top:2px;color:#697386}
-    .meta{text-align:right}.badge{display:inline-block;padding:6px 9px;border:1px solid #d6bf7b;border-radius:999px;color:#7d6624;font-size:9px;font-weight:800;letter-spacing:.12em}.meta strong{display:block;margin-top:9px;font-size:16px}.meta span{display:block;color:#697386;font-size:11px}
-    .hero{padding:30px 0 24px;text-align:center}.hero small{font-size:9px;font-weight:800;letter-spacing:.18em;color:#8b7332}.hero h1{margin:8px 0 4px;font-size:29px;line-height:1.14}.hero p{margin:0;color:#697386}
-    .amount{margin:0 auto 20px;padding:20px;border:1px solid #dfe3ea;border-radius:16px;background:#f7f8fa;text-align:center}.amount span{font-size:9px;font-weight:800;letter-spacing:.14em;color:#697386}.amount strong{display:block;margin:5px 0;font-size:32px;color:#111827}.amount p{margin:0;color:#697386}
-    .statement{padding:18px 20px;border-left:4px solid #c7a95b;background:#fffaf0;font-size:14px;text-align:justify}.statement strong{color:#111827}
-    .people{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.card{padding:15px 16px;border:1px solid #e1e5ec;border-radius:12px}.card span{font-size:9px;font-weight:800;letter-spacing:.13em;color:#8b7332}.card strong{display:block;margin:5px 0 3px;font-size:14px}.card p{margin:2px 0;color:#5d6677;font-size:11px}
-    .details{margin-top:16px;border:1px solid #e1e5ec;border-radius:12px;overflow:hidden}.row{display:grid;grid-template-columns:190px 1fr;gap:12px;padding:10px 14px;border-bottom:1px solid #eef0f4}.row:last-child{border-bottom:0}.row b{font-size:11px;color:#697386}.row span{color:#171b24}
-    .auth{margin-top:22px;padding:16px 18px;border:1px solid #dfe3ea;border-radius:12px;background:#f8f9fb}.auth-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.auth span{font-size:9px;font-weight:800;letter-spacing:.13em;color:#697386}.auth strong{display:block;margin-top:5px}.seal{padding:6px 9px;border-radius:8px;background:#171b24;color:#fff;font-size:9px;font-weight:800;white-space:nowrap}.hash{margin-top:10px;padding-top:10px;border-top:1px solid #e5e8ee;color:#697386;font-size:9px}.hash code{display:block;margin-top:4px;word-break:break-all;color:#343b48}
-    .notice{margin-top:15px;color:#697386;font-size:9px;line-height:1.55}.footer{text-align:center;margin-top:18px;color:#8b94a4;font-size:9px}
-    @media(max-width:640px){body{background:#fff}.sheet{margin:0;border:0;box-shadow:none}.page{padding:22px 18px}.people{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:3px}.top{align-items:flex-start}.meta{max-width:230px}}
-    @media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{margin:0;border:0;box-shadow:none}.page{padding:0}.accent{margin-bottom:24px}}
+    html,body{margin:0;padding:0;background:#f1f1f1;color:#111}
+    body{font:11px/1.35 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+    .ticket{width:80mm;max-width:100%;margin:14px auto;background:#fff;padding:5mm 4.5mm;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+    .brand{text-align:center}.brand img{width:34px;height:34px;object-fit:contain;filter:grayscale(1)}.brand strong{display:block;margin-top:4px;font:700 13px Arial,sans-serif}.brand small{display:block;margin-top:1px;color:#555;font-size:9px}
+    .dash{border:0;border-top:1px dashed #555;margin:9px 0}
+    .title{text-align:center}.title b{display:block;font-size:12px;letter-spacing:.03em}.title span{display:block;margin-top:2px;color:#555;font-size:8px}
+    .meta{display:flex;justify-content:space-between;gap:8px;font-size:9px}.meta span:last-child{text-align:right}
+    .amount{text-align:center;padding:7px 0 5px}.amount span{display:block;font-size:8px;letter-spacing:.08em}.amount strong{display:block;margin:2px 0;font:800 25px Arial,sans-serif}.amount small{font-weight:700}
+    .row{display:grid;grid-template-columns:28mm 1fr;gap:4px;padding:2px 0}.row b{font-size:9px}.row span{text-align:right;overflow-wrap:anywhere}
+    .block{margin-top:5px}.block b{display:block;font-size:9px}.block span{display:block;margin-top:2px;overflow-wrap:anywhere}
+    .auth{text-align:center;font-size:8px;color:#444}.auth strong{display:block;color:#111;font-size:9px;margin-bottom:2px}.auth code{font-size:8px;overflow-wrap:anywhere}
+    .nonfiscal{text-align:center;font-size:7px;color:#666;line-height:1.3}.footer{text-align:center;font-size:8px;font-weight:700}
+    @media(max-width:360px){.ticket{width:100%;margin:0;box-shadow:none;padding:14px}}
+    @media print{html,body{background:#fff}.ticket{width:72mm;margin:0;box-shadow:none;padding:0}.brand img{filter:grayscale(1)}}
   </style>
 </head>
 <body>
-  <main class="sheet">
-    <div class="accent"></div>
-    <div class="page">
-      <header class="top">
-        <div class="brand">
-          <img src="${escapeHtml(logoUrl)}" alt="Logo Nassusinfo">
-          <div><strong>Nassusinfo</strong><small>Soluções Tecnológicas</small></div>
-        </div>
-        <div class="meta">
-          <b class="badge">COMPROVANTE NÃO FISCAL</b>
-          <strong>${escapeHtml(document.number)}</strong>
-          <span>Emitido em ${escapeHtml(formatDate(document.issueDate))}</span>
-        </div>
-      </header>
+  <main class="ticket">
+    <section class="brand">
+      <img src="${escapeHtml(logoUrl)}" alt="Nassusinfo">
+      <strong>NASSUSINFO</strong>
+      <small>Soluções Tecnológicas · ${escapeHtml(city)}</small>
+    </section>
 
-      <section class="hero">
-        <small>CONFIRMAÇÃO DE PAGAMENTO</small>
-        <h1>Comprovante de pagamento recebido</h1>
-        <p>Documento particular emitido eletronicamente pelo recebedor.</p>
-      </section>
+    <hr class="dash">
 
-      <section class="amount">
-        <span>VALOR RECEBIDO</span>
-        <strong>${escapeHtml(formatCurrency(amount))}</strong>
-        <p>${escapeHtml(quittanceLabel)}</p>
-      </section>
+    <section class="title">
+      <b>COMPROVANTE DE PAGAMENTO</b>
+      <span>DOCUMENTO NÃO FISCAL</span>
+    </section>
 
-      <section class="statement">
-        Declaramos que recebemos de <strong>${escapeHtml(payer)}</strong>${payerDoc !== "Documento não informado" ? `, ${escapeHtml(payerDoc)}` : ""}, o valor de <strong>${escapeHtml(formatCurrency(amount))}</strong>, referente a <strong>${escapeHtml(category.toLocaleLowerCase("pt-BR"))}: ${escapeHtml(reference)}</strong>, pago em <strong>${escapeHtml(formatDate(paidAt))}</strong> por meio de <strong>${escapeHtml(paymentMethodLabel(method))}</strong>.
-      </section>
+    <hr class="dash">
 
-      <section class="people">
-        <div class="card"><span>RECEBEDOR / EMITENTE</span><strong>${escapeHtml(receiver)}</strong><p>${escapeHtml(receiverDoc)}</p><p>${escapeHtml(city)}</p></div>
-        <div class="card"><span>PAGADOR</span><strong>${escapeHtml(payer)}</strong><p>${escapeHtml(payerDoc)}</p><p>${escapeHtml(value(client, "email") || value(client, "whatsapp") || "Contato não informado")}</p></div>
-      </section>
+    <div class="meta"><span>${escapeHtml(document.number)}</span><span>${escapeHtml(formatDate(document.issueDate))}</span></div>
 
-      <section class="details">
-        <div class="row"><b>Natureza do recebimento</b><span>${escapeHtml(category)}</span></div>
-        <div class="row"><b>Descrição</b><span>${escapeHtml(reference)}</span></div>
-        <div class="row"><b>Forma de pagamento</b><span>${escapeHtml(paymentMethodLabel(method))}</span></div>
-        <div class="row"><b>Data do pagamento</b><span>${escapeHtml(formatDate(paidAt))}</span></div>
-        <div class="row"><b>Quitação</b><span>${escapeHtml(quittanceLabel)}</span></div>
-        ${value(payment, "id") ? `<div class="row"><b>Referência interna</b><span>Pagamento nº ${escapeHtml(value(payment, "id"))}</span></div>` : ""}
-      </section>
+    <section class="amount">
+      <span>VALOR RECEBIDO</span>
+      <strong>${escapeHtml(formatCurrency(amount))}</strong>
+      <small>QUITAÇÃO ${escapeHtml(quittanceLabel)}</small>
+    </section>
 
-      <section class="auth">
-        <div class="auth-top">
-          <div><span>AUTENTICAÇÃO ELETRÔNICA</span><strong>${escapeHtml(receiver)}</strong></div>
-          <div class="seal">AUTENTICADO PELO NASSUS CRM</div>
-        </div>
-        <div class="hash"><span>HASH / REFERÊNCIA DE INTEGRIDADE</span><code>${escapeHtml(safeHash)}</code></div>
-      </section>
+    <hr class="dash">
 
-      <p class="notice"><strong>Natureza não fiscal:</strong> este comprovante registra exclusivamente o recebimento particular do valor descrito. Não é nota fiscal, cupom fiscal ou documento tributário e não substitui documento fiscal quando sua emissão for legalmente obrigatória.</p>
-      <footer class="footer">Comprovante gerado pelo Nassus CRM · ${escapeHtml(city)}</footer>
-    </div>
+    <div class="row"><b>PAGADOR</b><span>${escapeHtml(payer)}</span></div>
+    ${payerDoc !== "Documento não informado" ? `<div class="row"><b>DOCUMENTO</b><span>${escapeHtml(payerDoc)}</span></div>` : ""}
+    <div class="row"><b>PAGAMENTO</b><span>${escapeHtml(paymentMethodLabel(method))}</span></div>
+    <div class="row"><b>DATA</b><span>${escapeHtml(formatDate(paidAt))}</span></div>
+    <div class="row"><b>NATUREZA</b><span>${escapeHtml(category)}</span></div>
+
+    <div class="block"><b>REFERENTE A</b><span>${escapeHtml(reference)}</span></div>
+
+    <hr class="dash">
+
+    <div class="block"><b>RECEBIDO POR</b><span>${escapeHtml(receiver)}</span><span>${escapeHtml(receiverDoc)}</span></div>
+    ${paymentReference ? `<div class="row"><b>REF. INTERNA</b><span>#${escapeHtml(paymentReference)}</span></div>` : ""}
+
+    <hr class="dash">
+
+    <section class="auth">
+      <strong>AUTENTICADO PELO NASSUS CRM</strong>
+      <span>Ref. de integridade</span><br>
+      <code>${escapeHtml(hashReference)}</code>
+    </section>
+
+    <hr class="dash">
+
+    <p class="nonfiscal">Comprova somente o recebimento do valor acima. Não substitui nota ou documento fiscal quando exigido por lei.</p>
+    <div class="footer">OBRIGADO!</div>
   </main>
   <script>
     window.onload=()=>{
       const images=[...document.images];
       Promise.all(images.map((image)=>image.complete?Promise.resolve():new Promise((resolve)=>{image.onload=resolve;image.onerror=resolve})))
-        .finally(()=>setTimeout(()=>window.print(),250));
+        .finally(()=>setTimeout(()=>window.print(),200));
     };
   <\/script>
 </body>
