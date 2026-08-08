@@ -12,9 +12,9 @@ Já estão implementados:
 - Dashboard com dados reais;
 - Clientes: cadastro, busca, status e exclusão;
 - Serviços: catálogo, preço, duração e status;
-- Agenda: cliente + serviço, confirmação, conclusão e cancelamento;
+- Agenda: cliente + serviço + profissional, confirmação, conclusão e cancelamento;
 - Financeiro: receitas, despesas, vencimentos e baixa de pagamento;
-- Orçamentos: numeração, cliente, serviço, desconto, validade e status;
+- Orçamentos: múltiplos itens, numeração, cliente, desconto, validade e status;
 - Equipe: inclusão por e-mail, perfis e desativação de acesso;
 - Relatórios operacionais e financeiros;
 - Configurações da empresa;
@@ -52,6 +52,7 @@ Regras adicionais:
 - usuários autenticados não podem alterar `plan`, `status`, limites ou validade do trial diretamente;
 - trial de 7 dias é fiscalizado no banco;
 - depois do trial, os dados permanecem legíveis, mas novas escritas ficam bloqueadas até a assinatura ficar ativa;
+- referências cruzadas entre empresas são bloqueadas no banco (cliente, serviço e profissional precisam pertencer ao mesmo tenant);
 - segredos, API keys e `DATABASE_URL` não devem ser enviados ao navegador nem versionados.
 
 ## Banco e migrações
@@ -71,6 +72,8 @@ database/002-team-access.sql
 database/003-billing-guard.sql
 database/004-trial-write-guard.sql
 database/005-role-permissions.sql
+database/006-team-trial-guard.sql
+database/007-tenant-reference-guard.sql
 ```
 
 As migrações 002+ documentam evoluções já aplicadas nos ambientes Neon.
