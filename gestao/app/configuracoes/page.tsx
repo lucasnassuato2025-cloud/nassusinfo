@@ -1,0 +1,36 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import AppShell from "@/components/app-shell";
+import { neonClient } from "@/lib/neon";
+import { friendlyWorkspaceError, requireWorkspace, type Workspace } from "@/lib/workspace";
+
+export default function SettingsPage(){
+  const [workspace,setWorkspace]=useState<Workspace|null>(null);
+  const [clientCount,setClientCount]=useState(0);
+  const [memberCount,setMemberCount]=useState(1);
+  const [name,setName]=useState("");
+  const [phone,setPhone]=useState("");
+  const [email,setEmail]=useState("");
+  const [document,setDocument]=useState("");
+  const [businessType,setBusinessType]=useState("services");
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState("");
+  const [success,setSuccess]=useState("");
+
+  useEffect(()=>{let active=true;async function load(){try{const current=await requireWorkspace();if(!current||!active)return;const [cq,mq]=await Promise.all([neonClient.from("clients").select("id").eq("business_id",current.business.id),neonClient.from("business_members").select("id").eq("business_id",current.business.id).eq("active",true)]);setWorkspace(current);setClientCount(Array.isArray(cq.data)?cq.data.length:0);setMemberCount(Array.isArray(mq.data)?mq.data.length:1);setName(current.business.name);setPhone(current.business.phone||"");setEmail(current.business.email||"");setDocument(current.business.document||"");setBusinessType(current.business.business_type||"services");}catch(reason){setError(friendlyWorkspaceError(reason));}finally{if(active)setLoading(false);}}void load();return()=>{active=false};},[]);
+
+  async function save(event:FormEvent<HTMLFormElement>){event.preventDefault();if(!workspace||saving)return;setSaving(true);setError("");setSuccess("");try{const result=await neonClient.from("businesses").update({name:name.trim(),phone:phone.trim()||null,email:email.trim()||null,document:document.trim()||null,business_type:businessType}).eq("id",workspace.business.id);if(result.error)throw result.error;setWorkspace({...workspace,business:{...workspace.business,name:name.trim(),phone:phone.trim()||null,email:email.trim()||null,document:document.trim()||null,business_type:businessType}});setSuccess("Configurações salvas com sucesso.");}catch(reason){setError(friendlyWorkspaceError(reason));}finally{setSaving(false);}}
+
+  if(loading)return <main className="loading"><div className="brand-mark">N</div><h1>Configurações</h1><p>Carregando empresa...</p></main>;
+  if(!workspace)return <main className="loading"><h1>Não foi possível abrir</h1><p>{error}</p></main>;
+
+  return <AppShell business={workspace.business} user={workspace.user} clientCount={clientCount} memberCount={memberCount}><main className="module-content">
+    <div className="module-head"><div><span className="eyebrow">ADMINISTRAÇÃO</span><h1>Configurações</h1><p>Dados da empresa e informações utilizadas no sistema.</p></div></div>
+    {error?<div className="notice error">{error}</div>:null}{success?<div className="notice success">{success}</div>:null}
+    <div className="settings-grid"><section className="form-panel"><span className="eyebrow">DADOS DA EMPRESA</span><h2>Perfil empresarial</h2><p>Essas informações identificam a empresa dentro do ambiente multiempresa.</p><form onSubmit={save}><div className="form-grid"><div className="field full"><label>Nome da empresa *</label><input required value={name} onChange={e=>setName(e.target.value)}/></div><div className="field"><label>Telefone</label><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(13) 99999-9999"/></div><div className="field"><label>E-mail comercial</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="contato@empresa.com.br"/></div><div className="field"><label>CPF/CNPJ</label><input value={document} onChange={e=>setDocument(e.target.value)} placeholder="Opcional"/></div><div className="field"><label>Segmento</label><select value={businessType} onChange={e=>setBusinessType(e.target.value)}><option value="services">Prestador de serviços</option><option value="clinic">Clínica / Saúde</option><option value="beauty">Barbearia / Salão / Estética</option><option value="pet">Petshop / Veterinária</option><option value="workshop">Oficina / Assistência técnica</option><option value="professional">Profissional liberal</option><option value="other">Outro</option></select></div></div><div className="form-actions"><button className="primary" disabled={saving}>{saving?"Salvando...":"Salvar alterações"}</button></div></form></section>
+      <aside className="settings-info"><span className="eyebrow">AMBIENTE</span><h3>Informações do sistema</h3><div className="info-list"><div><span>Empresa</span><strong>{workspace.business.name}</strong></div><div><span>Identificador</span><strong>{workspace.business.slug}</strong></div><div><span>Plano</span><strong>{workspace.business.plan==="essential"?"Essencial — R$ 39,90":"Profissional — R$ 139,90"}</strong></div><div><span>Status</span><strong>{workspace.business.status}</strong></div><div><span>Clientes</span><strong>{workspace.business.client_limit?`${clientCount}/${workspace.business.client_limit}`:`${clientCount} • ilimitado`}</strong></div><div><span>Usuários</span><strong>{memberCount}/{workspace.business.user_limit}</strong></div></div><div className="limit-note"><strong>Segurança multiempresa</strong><br/>As permissões são verificadas pelo banco Neon. Alterar a interface do navegador não libera dados de outra empresa.</div></aside>
+    </div>
+  </main></AppShell>;
+}
