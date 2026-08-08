@@ -5,6 +5,7 @@ import "./modules.css";
 import "./modules-fixes.css";
 import "./pre-cakto.css";
 import "./nassus-one.css";
+import "./nassus-one-legacy.css";
 
 export const metadata: Metadata = {
   title: { default: "Nassus Gestão", template: "%s | Nassus Gestão" },
