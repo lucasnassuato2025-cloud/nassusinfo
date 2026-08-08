@@ -18,9 +18,9 @@ permissions:
 
 jobs:
   build:
-    name: Build Nassus CRM
+    name: Build and E2E Nassus CRM
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: crm
@@ -44,3 +44,9 @@ jobs:
 
       - name: Build CRM
         run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Public E2E smoke tests
+        run: npm run test:e2e:ci
