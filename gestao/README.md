@@ -1,87 +1,108 @@
 # Nassus Gestão
 
-SaaS multiempresa para prestadores de serviços, com autenticação, isolamento de dados por empresa, limites por plano e base preparada para cobrança recorrente.
+SaaS multiempresa para prestadores de serviços, desenvolvido em Next.js e conectado ao Neon Auth + Data API.
 
-## Estado atual do MVP
+## MVP funcional
 
-- login e cadastro com Neon Auth;
-- onboarding para criação da empresa;
-- arquitetura multiempresa (`businesses` + `business_members`);
-- Row Level Security para impedir acesso aos dados de outra empresa;
-- dashboard conectado ao Neon Data API;
-- cadastro de clientes real;
-- estrutura de agenda, serviços, financeiro, orçamentos e equipe;
-- estrutura de assinaturas e webhooks preparada para Cakto;
-- plano Essencial: 2 usuários e até 90 clientes;
-- plano Profissional: até 10 usuários e clientes ilimitados;
-- layout responsivo inspirado em painéis administrativos premium.
+Já estão implementados:
 
-## Estrutura
+- login, cadastro e recuperação de senha;
+- onboarding e criação de empresa;
+- usuário participando de várias empresas com seletor de workspace;
+- Dashboard com dados reais;
+- Clientes: cadastro, busca, status e exclusão;
+- Serviços: catálogo, preço, duração e status;
+- Agenda: cliente + serviço, confirmação, conclusão e cancelamento;
+- Financeiro: receitas, despesas, vencimentos e baixa de pagamento;
+- Orçamentos: numeração, cliente, serviço, desconto, validade e status;
+- Equipe: inclusão por e-mail, perfis e desativação de acesso;
+- Relatórios operacionais e financeiros;
+- Configurações da empresa;
+- central de Assinatura com planos Essencial e Profissional;
+- PWA instalável, manifesto, ícone, service worker e fallback offline seguro;
+- endpoint `/api/health` para monitoramento;
+- CI no GitHub com typecheck + build do Next.js.
 
-```text
-gestao/
-├── app/
-│   ├── cadastro/
-│   ├── onboarding/
-│   ├── sign-in/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── database/
-│   └── schema.sql
-├── lib/
-│   ├── neon.ts
-│   └── session.ts
-├── .env.example
-├── next.config.ts
-├── package.json
-└── tsconfig.json
-```
+## Planos
 
-## Neon
+### Essencial — R$ 39,90/mês
 
-O aplicativo usa um projeto Neon dedicado chamado `nassus-gestao`, separado do `nassus-crm` existente.
+- até 2 usuários;
+- até 90 clientes;
+- clientes, agenda, serviços, financeiro e orçamentos;
+- PWA para computador e celular.
+
+### Profissional — R$ 139,90/mês
+
+- até 10 usuários;
+- clientes ilimitados;
+- recursos do Essencial;
+- maior capacidade operacional e base para automações avançadas.
+
+Os limites são aplicados no PostgreSQL. Alterar a interface do navegador não permite ultrapassá-los.
+
+## Segurança
+
+O projeto usa RLS e funções do PostgreSQL para isolar empresas. Cada registro operacional possui vínculo com um `business_id` e só pode ser acessado por membros daquela empresa.
+
+Regras adicionais:
+
+- proprietário e administrador possuem recursos gerenciais;
+- equipe operacional não lê financeiro nem assinatura;
+- usuários autenticados não podem alterar `plan`, `status`, limites ou validade do trial diretamente;
+- trial de 7 dias é fiscalizado no banco;
+- depois do trial, os dados permanecem legíveis, mas novas escritas ficam bloqueadas até a assinatura ficar ativa;
+- segredos, API keys e `DATABASE_URL` não devem ser enviados ao navegador nem versionados.
+
+## Banco e migrações
+
+Projeto Neon dedicado: `nassus-gestao`.
 
 Ambientes:
 
 - `main`: produção;
-- `development`: desenvolvimento e testes.
+- `development`: testes e validação.
 
-Neon Auth e Neon Data API estão provisionados nos dois ambientes. A aplicação usa apenas URLs públicas no cliente. Credenciais de banco nunca devem ser colocadas no GitHub.
+Arquivos:
 
-## Segurança multiempresa
+```text
+database/schema.sql
+database/002-team-access.sql
+database/003-billing-guard.sql
+database/004-trial-write-guard.sql
+database/005-role-permissions.sql
+```
 
-Todas as entidades principais possuem vínculo com uma empresa. As políticas RLS verificam se o usuário autenticado pertence à empresa antes de permitir leitura ou alteração.
+As migrações 002+ documentam evoluções já aplicadas nos ambientes Neon.
 
-Os limites comerciais também são protegidos no banco:
+## Cakto
 
-- Essencial: 90 clientes e 2 usuários;
-- Profissional: clientes ilimitados e 10 usuários.
+A aplicação já aceita links públicos de checkout através de:
 
-Assim, alterar a interface do navegador não permite ultrapassar os limites do plano.
+```text
+NEXT_PUBLIC_CAKTO_ESSENTIAL_CHECKOUT_URL
+NEXT_PUBLIC_CAKTO_PROFESSIONAL_CHECKOUT_URL
+```
+
+O banco possui `subscriptions` e `webhook_events`. O webhook que altera plano/status deve ser implementado somente quando o formato oficial de evento e a validação de assinatura da conta Cakto estiverem disponíveis. Não deve ser criado um webhook baseado em payload presumido.
 
 ## Desenvolvimento
 
 ```bash
 cd gestao
 npm install
+npm run typecheck
+npm run build
 npm run dev
 ```
 
-As variáveis públicas opcionais estão documentadas em `.env.example`. Sem elas, o projeto usa os endpoints públicos do ambiente principal configurados em `lib/neon.ts`.
-
 ## Publicação
 
-O site institucional, o CRM e o Nassus Gestão podem permanecer no mesmo repositório como aplicações separadas.
-
-Para publicar o Nassus Gestão, configure o provedor de hospedagem com **Root Directory** igual a `gestao` e associe o domínio:
+O repositório contém aplicações independentes. Para o Nassus Gestão, a hospedagem deve usar:
 
 ```text
-app.nassusinfo.com.br
+Root Directory: gestao
+Domínio: app.nassusinfo.com.br
 ```
 
-O domínio principal `nassusinfo.com.br` e o CRM existente não precisam ser alterados.
-
-## Cakto
-
-O banco já contém as tabelas `subscriptions` e `webhook_events`. A próxima etapa é configurar checkout/assinatura e o endpoint de webhook da Cakto para atualizar automaticamente o plano e o status de cada empresa.
+Isso mantém `nassusinfo.com.br` e `crm.nassusinfo.com.br` separados do novo SaaS.
