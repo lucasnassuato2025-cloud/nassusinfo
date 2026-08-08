@@ -7,28 +7,35 @@ on:
       - ".github/workflows/gestao-ci.yml"
   push:
     branches:
-      - "agent/nassus-gestao-mvp"
+      - main
+      - "audit/**"
     paths:
       - "gestao/**"
       - ".github/workflows/gestao-ci.yml"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: gestao
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Node 20
+      - name: Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: gestao/package.json
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Typecheck
         run: npm run typecheck
       - name: Build
