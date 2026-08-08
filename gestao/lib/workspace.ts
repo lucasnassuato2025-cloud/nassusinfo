@@ -3,6 +3,8 @@
 import { neonClient } from "@/lib/neon";
 import { getCurrentUser, type SessionUser } from "@/lib/session";
 
+export const ACTIVE_BUSINESS_KEY = "nassus_active_business_id";
+
 export type WorkspaceBusiness = {
   id: string;
   name: string;
@@ -20,6 +22,7 @@ export type WorkspaceBusiness = {
 export type Workspace = {
   user: SessionUser;
   business: WorkspaceBusiness;
+  businesses: WorkspaceBusiness[];
 };
 
 export async function loadWorkspace(): Promise<Workspace | null> {
@@ -29,13 +32,17 @@ export async function loadWorkspace(): Promise<Workspace | null> {
   const result = await neonClient
     .from("businesses")
     .select("id,name,slug,plan,status,client_limit,user_limit,business_type,phone,email,document")
-    .limit(1);
+    .order("name", { ascending: true });
 
   if (result.error) throw result.error;
-  const rows = Array.isArray(result.data) ? result.data : [];
-  if (!rows.length) return { user, business: null as never };
+  const businesses = (Array.isArray(result.data) ? result.data : []) as WorkspaceBusiness[];
+  if (!businesses.length) return { user, business: null as never, businesses: [] };
 
-  return { user, business: rows[0] as WorkspaceBusiness };
+  const storedId = window.localStorage.getItem(ACTIVE_BUSINESS_KEY);
+  const business = businesses.find((item) => item.id === storedId) || businesses[0];
+  if (business.id !== storedId) window.localStorage.setItem(ACTIVE_BUSINESS_KEY, business.id);
+
+  return { user, business, businesses };
 }
 
 export async function requireWorkspace(): Promise<Workspace | null> {
@@ -49,6 +56,11 @@ export async function requireWorkspace(): Promise<Workspace | null> {
     return null;
   }
   return workspace;
+}
+
+export function setActiveBusiness(businessId: string) {
+  window.localStorage.setItem(ACTIVE_BUSINESS_KEY, businessId);
+  window.location.reload();
 }
 
 export function friendlyWorkspaceError(reason: unknown): string {
