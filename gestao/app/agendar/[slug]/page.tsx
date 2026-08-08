@@ -1,0 +1,41 @@
+"use client";
+
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { neonClient } from "@/lib/neon";
+import { formatMoney } from "@/lib/workspace";
+
+type Business={id:string;name:string;slug:string;phone:string|null;email:string|null;address:string|null;timezone:string;opening_hours:Record<string,unknown>;booking_notice:string|null};
+type Service={id:string;name:string;description:string|null;duration_minutes:number|null;price:number|string};
+type Professional={id:string;name:string;job_title:string|null};
+type Profile={business:Business;services:Service[];professionals:Professional[]};
+
+function publicError(reason:unknown){const raw=reason instanceof Error?reason.message:String((reason as {message?:unknown}|null)?.message||"");if(/APPOINTMENT_CONFLICT/.test(raw))return "Esse horário acabou de ser ocupado. Escolha outro horário.";if(/CLIENT_LIMIT_REACHED/.test(raw))return "A empresa atingiu temporariamente o limite de cadastros. Entre em contato diretamente com ela.";if(/PUBLIC_BOOKING_UNAVAILABLE|SERVICE_UNAVAILABLE|PROFESSIONAL_UNAVAILABLE/.test(raw))return "Este agendamento não está mais disponível. Atualize a página e tente novamente.";if(/INVALID_APPOINTMENT_DATE/.test(raw))return "Escolha uma data futura válida.";return "Não foi possível concluir o agendamento. Tente novamente.";}
+
+export default function PublicBookingPage(){
+  const params=useParams<{slug:string}>();
+  const slug=String(params?.slug||"");
+  const [profile,setProfile]=useState<Profile|null>(null);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [done,setDone]=useState(false);
+  const [error,setError]=useState("");
+  const [serviceId,setServiceId]=useState("");
+  const [professionalId,setProfessionalId]=useState("");
+  const [startsAt,setStartsAt]=useState("");
+  const [name,setName]=useState("");
+  const [phone,setPhone]=useState("");
+  const [email,setEmail]=useState("");
+  const [notes,setNotes]=useState("");
+
+  useEffect(()=>{let active=true;async function load(){try{const result=await (neonClient as any).rpc("public_booking_profile",{p_slug:slug});if(result.error)throw result.error;if(active)setProfile((result.data||null) as Profile|null);}catch{if(active)setProfile(null);}finally{if(active)setLoading(false);}}if(slug)void load();return()=>{active=false};},[slug]);
+  const service=useMemo(()=>profile?.services.find(item=>item.id===serviceId)||null,[profile,serviceId]);
+  const minDate=useMemo(()=>{const date=new Date(Date.now()+30*60*1000);date.setMinutes(Math.ceil(date.getMinutes()/15)*15,0,0);return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);},[]);
+
+  async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();if(!profile||!serviceId||!startsAt||saving)return;setSaving(true);setError("");try{const date=new Date(startsAt);const result=await (neonClient as any).rpc("create_public_booking",{p_slug:slug,p_client_name:name.trim(),p_phone:phone.trim(),p_email:email.trim(),p_service_id:serviceId,p_professional_user_id:professionalId||null,p_starts_at:date.toISOString(),p_notes:notes.trim()||null});if(result.error)throw result.error;setDone(true);window.scrollTo({top:0,behavior:"smooth"});}catch(reason){setError(publicError(reason));}finally{setSaving(false);}}
+
+  if(loading)return <main className="booking-public-page"><div className="booking-public-shell"><div className="loading"><div className="brand-mark">N</div><h1>Carregando agenda...</h1></div></div></main>;
+  if(!profile)return <main className="booking-public-page"><div className="booking-public-shell"><div className="booking-public-card"><div className="booking-success"><div className="brand-mark" style={{margin:"0 auto"}}>N</div><strong>Agendamento indisponível</strong><p>Esta empresa não está recebendo agendamentos online neste momento.</p></div></div></div></main>;
+
+  return <main className="booking-public-page"><div className="booking-public-shell"><header className="booking-public-head"><div className="booking-public-brand"><div className="brand-mark">N</div><div><strong>{profile.business.name}</strong><small style={{display:"block",color:"#646970"}}>Agendamento online • Nassus Gestão</small></div></div>{profile.business.phone?<a className="secondary" href={`tel:${profile.business.phone}`}>Falar com a empresa</a>:null}</header><section className="booking-public-card">{done?<div className="booking-success"><div style={{fontSize:42}}>✓</div><strong>Agendamento solicitado!</strong><p>Seu horário foi registrado na agenda de {profile.business.name}. A empresa poderá entrar em contato para confirmar.</p><button className="primary" onClick={()=>{setDone(false);setStartsAt("");setNotes("");}}>Agendar outro horário</button></div>:<><div className="booking-public-intro"><span className="eyebrow">AGENDE ONLINE</span><h1>{profile.business.name}</h1><p>{profile.business.booking_notice||"Escolha o serviço, profissional e melhor horário. Seu pedido entra diretamente na agenda da empresa."}</p>{profile.business.address?<p style={{marginTop:10}}>📍 {profile.business.address}</p>:null}</div><div className="booking-public-form">{error?<div className="notice error">{error}</div>:null}<form onSubmit={submit}><div className="booking-public-grid"><label className="full">Serviço *<select required value={serviceId} onChange={e=>setServiceId(e.target.value)}><option value="">Selecione o serviço</option>{profile.services.map(item=><option key={item.id} value={item.id}>{item.name} • {formatMoney(item.price)}{item.duration_minutes?` • ${item.duration_minutes} min`:""}</option>)}</select>{service?.description?<small className="public-service-note">{service.description}</small>:null}</label><label>Profissional<select value={professionalId} onChange={e=>setProfessionalId(e.target.value)}><option value="">Qualquer disponível</option>{profile.professionals.map(item=><option key={item.id} value={item.id}>{item.name}{item.job_title?` • ${item.job_title}`:""}</option>)}</select></label><label>Data e horário *<input type="datetime-local" required min={minDate} value={startsAt} onChange={e=>setStartsAt(e.target.value)}/></label><label>Seu nome *<input required minLength={2} maxLength={120} value={name} onChange={e=>setName(e.target.value)} placeholder="Nome completo"/></label><label>WhatsApp / telefone<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="(13) 99999-9999"/></label><label className="full">E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@email.com"/></label><label className="full">Observações<textarea value={notes} maxLength={1000} onChange={e=>setNotes(e.target.value)} placeholder="Algo que a empresa precise saber?"/></label></div><div className="form-actions" style={{marginTop:18}}><button className="primary" disabled={saving||!serviceId}>{saving?"Agendando...":"Confirmar agendamento"}</button></div></form></div></>}</section><p style={{textAlign:"center",fontSize:11,color:"#8c8f94",marginTop:15}}>Agendamento protegido pelo Nassus Gestão. Seus dados são enviados somente para esta empresa.</p></div></main>;
+}
