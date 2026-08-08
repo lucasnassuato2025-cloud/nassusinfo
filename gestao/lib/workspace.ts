@@ -4,6 +4,7 @@ import { neonClient } from "@/lib/neon";
 import { getCurrentUser, type SessionUser } from "@/lib/session";
 
 export const ACTIVE_BUSINESS_KEY = "nassus_active_business_id";
+export type BusinessRole = "owner" | "admin" | "member";
 
 export type WorkspaceBusiness = {
   id: string;
@@ -31,20 +32,13 @@ const BUSINESS_COLUMNS = "id,name,slug,plan,status,client_limit,user_limit,busin
 export async function loadWorkspace(): Promise<Workspace | null> {
   const user = await getCurrentUser();
   if (!user?.email) return null;
-
-  const result = await neonClient
-    .from("businesses")
-    .select(BUSINESS_COLUMNS)
-    .order("name", { ascending: true });
-
+  const result = await neonClient.from("businesses").select(BUSINESS_COLUMNS).order("name", { ascending: true });
   if (result.error) throw result.error;
   const businesses = (Array.isArray(result.data) ? result.data : []) as WorkspaceBusiness[];
   if (!businesses.length) return { user, business: null as never, businesses: [] };
-
   const storedId = window.localStorage.getItem(ACTIVE_BUSINESS_KEY);
   const business = businesses.find((item) => item.id === storedId) || businesses[0];
   if (business.id !== storedId) window.localStorage.setItem(ACTIVE_BUSINESS_KEY, business.id);
-
   return { user, business, businesses };
 }
 
@@ -59,6 +53,21 @@ export async function requireWorkspace(): Promise<Workspace | null> {
     return null;
   }
   return workspace;
+}
+
+export async function getBusinessRole(businessId: string): Promise<BusinessRole | null> {
+  const result = await (neonClient as any).rpc("business_role", { p_business_id: businessId });
+  if (result.error) throw result.error;
+  return typeof result.data === "string" ? result.data as BusinessRole : null;
+}
+
+export async function requireManager(workspace: Workspace): Promise<BusinessRole | null> {
+  const role = await getBusinessRole(workspace.business.id);
+  if (role !== "owner" && role !== "admin") {
+    window.location.replace("/?permission=manager");
+    return null;
+  }
+  return role;
 }
 
 export function setActiveBusiness(businessId: string) {
