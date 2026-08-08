@@ -26,6 +26,7 @@ import "./pro-ui2.css";
 import "./pro-ui2-modules.css";
 import "./pro-ui2-finishing.css";
 import "./pro-ui2-documents.css";
+import "./pro-ui2-admin.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
