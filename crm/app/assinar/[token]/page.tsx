@@ -1,3 +1,4 @@
+import "./signing-v2.css";
 import SigningClientV2 from "./signing-client-v2";
 
 export const dynamic = "force-dynamic";
