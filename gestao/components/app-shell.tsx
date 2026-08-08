@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { neonClient } from "@/lib/neon";
 import type { SessionUser } from "@/lib/session";
@@ -15,37 +15,46 @@ type AppShellProps = {
   children: ReactNode;
 };
 
+type BusinessRole = "owner" | "admin" | "member";
+
 const NAV_ITEMS = [
   { href: "/", icon: "▣", label: "Dashboard" },
   { href: "/clientes", icon: "👥", label: "Clientes" },
   { href: "/agenda", icon: "▦", label: "Agenda" },
   { href: "/servicos", icon: "🛠", label: "Serviços" },
-  { href: "/financeiro", icon: "R$", label: "Financeiro" },
+  { href: "/financeiro", icon: "R$", label: "Financeiro", manageOnly: true },
   { href: "/orcamentos", icon: "▤", label: "Orçamentos" },
-  { href: "/equipe", icon: "◉", label: "Equipe" },
+  { href: "/equipe", icon: "◉", label: "Equipe", manageOnly: true },
   { href: "/relatorios", icon: "↗", label: "Relatórios" },
-  { href: "/assinatura", icon: "◆", label: "Assinatura" },
-  { href: "/configuracoes", icon: "⚙", label: "Configurações" },
+  { href: "/assinatura", icon: "◆", label: "Assinatura", manageOnly: true },
+  { href: "/configuracoes", icon: "⚙", label: "Configurações", manageOnly: true },
 ];
 
 export default function AppShell({ business, user, clientCount = 0, memberCount = 1, children }: AppShellProps) {
   const pathname = usePathname();
   const [businesses, setBusinesses] = useState<WorkspaceBusiness[]>([business]);
+  const [role, setRole] = useState<BusinessRole>("member");
   const clientUsage = business.client_limit ? Math.min(100, (clientCount / business.client_limit) * 100) : 100;
   const userUsage = Math.min(100, (memberCount / business.user_limit) * 100);
   const trialDays = trialDaysRemaining(business);
   const trialExpired = isTrialExpired(business);
+  const canManage = role === "owner" || role === "admin";
+  const visibleNav = useMemo(() => NAV_ITEMS.filter((item) => !item.manageOnly || canManage), [canManage]);
 
   useEffect(() => {
     let active = true;
-    async function loadBusinesses() {
-      const result = await neonClient.from("businesses").select("id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document").order("name", { ascending: true });
-      if (!active || result.error || !Array.isArray(result.data) || !result.data.length) return;
-      setBusinesses(result.data as WorkspaceBusiness[]);
+    async function loadShellContext() {
+      const [businessResult, roleResult] = await Promise.all([
+        neonClient.from("businesses").select("id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document").order("name", { ascending: true }),
+        (neonClient as any).rpc("business_role", { p_business_id: business.id }),
+      ]);
+      if (!active) return;
+      if (!businessResult.error && Array.isArray(businessResult.data) && businessResult.data.length) setBusinesses(businessResult.data as WorkspaceBusiness[]);
+      if (!roleResult.error && typeof roleResult.data === "string") setRole(roleResult.data as BusinessRole);
     }
-    void loadBusinesses();
+    void loadShellContext();
     return () => { active = false; };
-  }, []);
+  }, [business.id]);
 
   async function signOut() {
     await neonClient.auth.signOut();
@@ -69,7 +78,7 @@ export default function AppShell({ business, user, clientCount = 0, memberCount 
         <div className="business-chip"><span>Empresa atual</span><BusinessSelect /></div>
 
         <nav className="nav" aria-label="Menu principal">
-          {NAV_ITEMS.map((item) => {
+          {visibleNav.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return <a key={item.href} className={active ? "active" : ""} href={item.href}><b>{item.icon}</b><span>{item.label}</span></a>;
           })}
@@ -80,7 +89,8 @@ export default function AppShell({ business, user, clientCount = 0, memberCount 
           <strong>{business.client_limit ? `${clientCount} / ${business.client_limit} clientes` : `${clientCount} clientes • ilimitado`}</strong>
           <div className="meter"><i style={{ width: `${clientUsage}%` }} /></div>
           <small>{memberCount}/{business.user_limit} usuários • {Math.round(userUsage)}% da capacidade</small>
-          {business.plan === "essential" ? <a className="side-upgrade" href="/assinatura">Conhecer Profissional →</a> : null}
+          <small className="role-label">Perfil: {role === "owner" ? "Proprietário" : role === "admin" ? "Administrador" : "Equipe"}</small>
+          {business.plan === "essential" && canManage ? <a className="side-upgrade" href="/assinatura">Conhecer Profissional →</a> : null}
         </div>
       </aside>
 
@@ -89,15 +99,15 @@ export default function AppShell({ business, user, clientCount = 0, memberCount 
           <div className="top-business"><strong>{business.name}</strong><small>{business.plan === "essential" ? "Essencial • 2 usuários • 90 clientes" : "Profissional • 10 usuários • clientes ilimitados"}</small></div>
           <BusinessSelect compact />
           <div className="top-actions">
-            <a className="top-help" href="/configuracoes">Ajuda e configurações</a>
+            {canManage ? <a className="top-help" href="/configuracoes">Ajuda e configurações</a> : null}
             <div className="top-user"><span>{(user.name || user.email || "U").slice(0, 1).toUpperCase()}</span><div><strong>{user.name || user.email}</strong><button type="button" onClick={signOut}>Sair</button></div></div>
           </div>
         </header>
 
-        {business.status === "trial" ? <div className={trialExpired ? "trial-banner expired" : "trial-banner"}>{trialExpired ? <><strong>Seu período de teste terminou.</strong><span>Os dados continuam disponíveis para consulta, mas novas alterações estão bloqueadas.</span><a href="/assinatura">Escolher plano →</a></> : <><strong>Período de teste</strong><span>{trialDays === 1 ? "Último dia para testar todos os recursos." : `${trialDays} dias restantes para testar o Nassus Gestão.`}</span><a href="/assinatura">Ver planos →</a></>}</div> : null}
+        {business.status === "trial" ? <div className={trialExpired ? "trial-banner expired" : "trial-banner"}>{trialExpired ? <><strong>Seu período de teste terminou.</strong><span>Os dados continuam disponíveis para consulta, mas novas alterações estão bloqueadas.</span>{canManage ? <a href="/assinatura">Escolher plano →</a> : null}</> : <><strong>Período de teste</strong><span>{trialDays === 1 ? "Último dia para testar todos os recursos." : `${trialDays} dias restantes para testar o Nassus Gestão.`}</span>{canManage ? <a href="/assinatura">Ver planos →</a> : null}</>}</div> : null}
 
         <div className="mobile-nav" aria-label="Navegação móvel">
-          {NAV_ITEMS.slice(0, 6).map((item) => {
+          {visibleNav.slice(0, 6).map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return <a key={item.href} className={active ? "active" : ""} href={item.href}><b>{item.icon}</b><span>{item.label}</span></a>;
           })}
