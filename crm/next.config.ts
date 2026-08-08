@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.neon.tech https://*.neon.build",
+  "connect-src 'self' https://*.neon.tech https://*.neon.build https://viacep.com.br https://brasilapi.com.br",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");
