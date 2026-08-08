@@ -1,12 +1,29 @@
+import { lookup as dnsLookup } from "node:dns";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { isIP } from "node:net";
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export const maxDuration = 20;
+
+const MAX_HTML_BYTES = 2_000_000;
+const MAX_REDIRECTS = 5;
+const MAX_REQUEST_BYTES = 4_096;
 
 type Finding = {
   positives: string[];
   issues: string[];
   recommendations: string[];
+};
+
+type SafeFetchResult = {
+  status: number;
+  contentType: string;
+  url: string;
+  html: string;
 };
 
 function decodeEntities(value: string): string {
@@ -34,51 +51,184 @@ function countMatches(value: string, pattern: RegExp): number {
   return (value.match(pattern) || []).length;
 }
 
+function ipv4IsPrivate(address: string): boolean {
+  const octets = address.split(".").map(Number);
+  if (octets.length !== 4 || octets.some((item) => !Number.isInteger(item) || item < 0 || item > 255)) return true;
+  const [a, b, c] = octets;
+
+  return a === 0
+    || a === 10
+    || a === 127
+    || (a === 100 && b >= 64 && b <= 127)
+    || (a === 169 && b === 254)
+    || (a === 172 && b >= 16 && b <= 31)
+    || (a === 192 && b === 0 && c === 0)
+    || (a === 192 && b === 0 && c === 2)
+    || (a === 192 && b === 168)
+    || (a === 198 && (b === 18 || b === 19))
+    || (a === 198 && b === 51 && c === 100)
+    || (a === 203 && b === 0 && c === 113)
+    || a >= 224;
+}
+
+function ipv6IsPrivate(address: string): boolean {
+  const normalized = address.toLowerCase().replace(/^\[|\]$/g, "");
+  const mapped = normalized.match(/(?:^|:)(\d{1,3}(?:\.\d{1,3}){3})$/)?.[1];
+  if (mapped) return ipv4IsPrivate(mapped);
+
+  return normalized === "::"
+    || normalized === "::1"
+    || normalized === "0:0:0:0:0:0:0:0"
+    || normalized === "0:0:0:0:0:0:0:1"
+    || normalized.startsWith("fc")
+    || normalized.startsWith("fd")
+    || /^fe[89ab]/.test(normalized)
+    || normalized.startsWith("ff")
+    || normalized.startsWith("2001:db8");
+}
+
+function addressIsPrivate(address: string): boolean {
+  const family = isIP(address);
+  if (family === 4) return ipv4IsPrivate(address);
+  if (family === 6) return ipv6IsPrivate(address);
+  return true;
+}
+
 function ensurePublicUrl(input: string): URL {
-  const parsed = new URL(input.startsWith("http") ? input : `https://${input}`);
-  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error("Use uma URL http ou https.");
+  if (!input || input.length > 2_048) throw new Error("Informe uma URL pública válida.");
+  const parsed = new URL(/^https?:\/\//i.test(input) ? input : `https://${input}`);
+  if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Use uma URL http ou https.");
+  if (parsed.username || parsed.password) throw new Error("URLs com usuário ou senha não podem ser analisadas.");
 
-  const hostname = parsed.hostname.toLowerCase();
-  const blocked =
-    hostname === "localhost" ||
-    hostname.endsWith(".local") ||
-    hostname === "0.0.0.0" ||
-    hostname === "127.0.0.1" ||
-    hostname === "::1" ||
-    /^10\./.test(hostname) ||
-    /^192\.168\./.test(hostname) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+  const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const blockedName = hostname === "localhost"
+    || hostname.endsWith(".localhost")
+    || hostname.endsWith(".local")
+    || hostname.endsWith(".internal")
+    || hostname === "metadata.google.internal";
+  if (blockedName) throw new Error("Endereços locais, internos ou de metadados não podem ser analisados.");
+  if (isIP(hostname) && addressIsPrivate(hostname)) throw new Error("Endereços locais, reservados ou privados não podem ser analisados.");
 
-  if (blocked) throw new Error("Endereços locais ou privados não podem ser analisados.");
+  parsed.hash = "";
   return parsed;
+}
+
+function safeLookup(hostname: string, options: any, callback: any) {
+  dnsLookup(hostname, { all: true, verbatim: true }, (error, addresses) => {
+    if (error) return callback(error);
+    if (!addresses.length || addresses.some((item) => addressIsPrivate(item.address))) {
+      return callback(new Error("O domínio resolve para uma rede local, reservada ou privada."));
+    }
+
+    const requestedFamily = typeof options === "object" ? Number(options.family || 0) : 0;
+    const selected = addresses.find((item) => !requestedFamily || item.family === requestedFamily) || addresses[0];
+    if (typeof options === "object" && options.all) return callback(null, addresses);
+    return callback(null, selected.address, selected.family);
+  });
+}
+
+async function safeFetchHtml(initialUrl: URL, redirectCount = 0): Promise<SafeFetchResult> {
+  if (redirectCount > MAX_REDIRECTS) throw new Error("O site realizou redirecionamentos demais.");
+  const url = ensurePublicUrl(initialUrl.toString());
+  const requestImpl = url.protocol === "https:" ? httpsRequest : httpRequest;
+
+  return new Promise<SafeFetchResult>((resolve, reject) => {
+    const request = requestImpl(url, {
+      method: "GET",
+      lookup: safeLookup,
+      headers: {
+        "user-agent": "NassusCRM-Audit/1.1 (+https://nassusinfo.com.br)",
+        accept: "text/html,application/xhtml+xml",
+        "accept-encoding": "identity",
+        connection: "close",
+      },
+    }, (response) => {
+      const status = response.statusCode || 0;
+      const location = Array.isArray(response.headers.location) ? response.headers.location[0] : response.headers.location;
+      if ([301, 302, 303, 307, 308].includes(status) && location) {
+        response.resume();
+        let nextUrl: URL;
+        try {
+          nextUrl = ensurePublicUrl(new URL(location, url).toString());
+        } catch (reason) {
+          reject(reason);
+          return;
+        }
+        void safeFetchHtml(nextUrl, redirectCount + 1).then(resolve, reject);
+        return;
+      }
+
+      if (status < 200 || status >= 300) {
+        response.resume();
+        reject(new Error(`O site respondeu com status ${status}.`));
+        return;
+      }
+
+      const contentType = String(response.headers["content-type"] || "");
+      if (!contentType.toLowerCase().includes("text/html") && !contentType.toLowerCase().includes("application/xhtml+xml")) {
+        response.resume();
+        reject(new Error("A URL não retornou uma página HTML."));
+        return;
+      }
+
+      const encoding = String(response.headers["content-encoding"] || "identity").toLowerCase();
+      if (encoding !== "identity") {
+        response.resume();
+        reject(new Error("O servidor não permitiu uma leitura HTML segura sem compressão."));
+        return;
+      }
+
+      const declaredLength = Number(response.headers["content-length"] || 0);
+      if (declaredLength > MAX_HTML_BYTES) {
+        response.resume();
+        reject(new Error("A página é grande demais para uma análise segura."));
+        return;
+      }
+
+      const chunks: Buffer[] = [];
+      let total = 0;
+      response.on("data", (chunk: Buffer | string) => {
+        const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        total += buffer.length;
+        if (total > MAX_HTML_BYTES) {
+          response.destroy(new Error("A página excedeu o limite seguro de análise."));
+          return;
+        }
+        chunks.push(buffer);
+      });
+      response.on("end", () => {
+        resolve({ status, contentType, url: url.toString(), html: Buffer.concat(chunks).toString("utf8") });
+      });
+      response.on("error", reject);
+    });
+
+    request.setTimeout(12_000, () => request.destroy(new Error("A consulta ao site excedeu o tempo limite.")));
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+function validateBrowserOrigin(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  if (!origin) return;
+  const host = request.headers.get("host") || request.nextUrl.host;
+  try {
+    if (new URL(origin).host !== host) throw new Error("origin");
+  } catch {
+    throw new Error("Origem da solicitação não autorizada.");
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    validateBrowserOrigin(request);
+    const requestSize = Number(request.headers.get("content-length") || 0);
+    if (requestSize > MAX_REQUEST_BYTES) return NextResponse.json({ error: "Solicitação muito grande." }, { status: 413 });
+
     const body = (await request.json()) as { url?: string };
     const url = ensurePublicUrl(String(body.url || "").trim());
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
-
-    const response = await fetch(url.toString(), {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent": "NassusCRM-Audit/1.0 (+https://nassusinfo.com.br)",
-        accept: "text/html,application/xhtml+xml",
-      },
-      cache: "no-store",
-    }).finally(() => clearTimeout(timeout));
-
-    if (!response.ok) {
-      throw new Error(`O site respondeu com status ${response.status}.`);
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("text/html")) throw new Error("A URL não retornou uma página HTML.");
-
-    const html = (await response.text()).slice(0, 2_000_000);
+    const fetched = await safeFetchHtml(url);
+    const html = fetched.html;
     const lower = html.toLowerCase();
 
     const title = firstMatch(html, [/<title[^>]*>([\s\S]*?)<\/title>/i]);
@@ -107,7 +257,7 @@ export async function POST(request: NextRequest) {
     const hasCta = /(solicite|fale conosco|entre em contato|agende|orçamento|comprar|começar|saiba mais)/i.test(lower);
     const hasResponsiveCss = /@media\s*\(/i.test(html);
     const hasStructuredData = /application\/ld\+json/i.test(html);
-    const usesHttps = response.url.startsWith("https://");
+    const usesHttps = fetched.url.startsWith("https://");
 
     let seoScore = 0;
     seoScore += title.length >= 20 && title.length <= 65 ? 20 : title ? 10 : 0;
@@ -139,7 +289,6 @@ export async function POST(request: NextRequest) {
     const overallScore = Math.round(seoScore * 0.42 + mobileScore * 0.28 + conversionScore * 0.3);
 
     const findings: Finding = { positives: [], issues: [], recommendations: [] };
-
     if (title) findings.positives.push("A página possui título configurado.");
     else findings.issues.push("A página não possui um título identificável.");
     if (description) findings.positives.push("Existe uma descrição para mecanismos de busca.");
@@ -158,7 +307,7 @@ export async function POST(request: NextRequest) {
     if (formCount === 0) findings.recommendations.push("Considerar um formulário rápido de contato ou orçamento.");
 
     return NextResponse.json({
-      url: response.url,
+      url: fetched.url,
       title: title || url.hostname,
       overallScore,
       seoScore,
@@ -182,9 +331,9 @@ export async function POST(request: NextRequest) {
           usesHttps,
         },
       },
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (reason) {
     const message = reason instanceof Error ? reason.message : "Não foi possível analisar o site.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 400, headers: { "Cache-Control": "no-store" } });
   }
 }

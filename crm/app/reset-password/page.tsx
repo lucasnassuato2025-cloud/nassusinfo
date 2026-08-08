@@ -20,7 +20,13 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setToken(new URLSearchParams(window.location.search).get("token")?.trim() || "");
+    const currentUrl = new URL(window.location.href);
+    const resetToken = currentUrl.searchParams.get("token")?.trim() || "";
+    setToken(resetToken);
+
+    if (currentUrl.search) {
+      window.history.replaceState(window.history.state, "", currentUrl.pathname + currentUrl.hash);
+    }
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -37,6 +43,7 @@ export default function ResetPasswordPage() {
     setMessage("");
     try {
       await resetPassword(token, first);
+      setToken("");
       setDone(true);
     } catch (reason) {
       const raw = reason instanceof Error ? reason.message : "";
@@ -49,7 +56,7 @@ export default function ResetPasswordPage() {
   }
 
   const checkingToken = token === null;
-  const invalidToken = token === "";
+  const invalidToken = token === "" && !done;
 
   return (
     <main className="pro-auth">

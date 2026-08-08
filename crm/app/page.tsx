@@ -17,13 +17,8 @@ import {
   mapProject,
   mapSiteAudit,
 } from "@/lib/crm-pro";
+import { claimWorkspaceWithRetry, waitForAuthenticatedUser } from "@/lib/auth-session";
 import { neonClient } from "@/lib/neon";
-
-type SessionUser = {
-  id?: string;
-  name?: string | null;
-  email?: string | null;
-};
 
 type DashboardUser = {
   name: string;
@@ -39,6 +34,7 @@ function rows(value: unknown): DataRow[] {
 function friendlyError(reason: unknown): string {
   const message = reason instanceof Error ? reason.message : String((reason as { message?: unknown } | null)?.message || "");
   if (/not authorized|não foi autorizado/i.test(message)) return "Este e-mail ainda não foi autorizado no workspace do CRM.";
+  if (/sess[aã]o inv[aá]lida|jwt|token/i.test(message)) return "Sua sessão não ficou disponível corretamente. Entre novamente no CRM.";
   if (/permission|row-level security/i.test(message)) return "O acesso ao workspace não foi concluído. Saia e entre novamente no CRM.";
   if (/network|fetch|timeout/i.test(message)) return "Não foi possível conectar ao servidor. Verifique a internet e tente novamente.";
   return message || "Não foi possível abrir o CRM.";
@@ -58,19 +54,13 @@ export default function HomePage() {
 
     async function loadDashboard() {
       try {
-        const sessionResult = await neonClient.auth.getSession();
-        const authData = sessionResult.data as
-          | { user?: SessionUser | null; session?: { user?: SessionUser | null } | null }
-          | null;
-        const currentUser = authData?.user ?? authData?.session?.user;
-
+        const currentUser = await waitForAuthenticatedUser();
         if (!currentUser?.email) {
           window.location.replace("/sign-in");
           return;
         }
 
-        const claim = await (neonClient as any).rpc("crm_claim_membership");
-        if (claim.error) throw new Error(claim.error.message || "Não foi possível validar o workspace.");
+        await claimWorkspaceWithRetry();
 
         const [clientQuery, projectQuery, paymentQuery, auditQuery] = await Promise.all([
           neonClient.from("clients").select(CLIENT_COLUMNS).order("updated_at", { ascending: false }).order("id", { ascending: false }),
@@ -79,7 +69,6 @@ export default function HomePage() {
           neonClient.from("site_audits").select(AUDIT_COLUMNS).order("created_at", { ascending: false }).order("id", { ascending: false }),
         ]);
 
-        // Clientes são a base do CRM. Falhas em módulos auxiliares não devem impedir a abertura do workspace.
         if (clientQuery.error) throw new Error(clientQuery.error.message || "Não foi possível carregar os clientes.");
         if (!active) return;
 
@@ -107,7 +96,7 @@ export default function HomePage() {
       <main className="pro-boot">
         <div className="pro-boot-logo" aria-hidden="true" />
         <span>NASSUS CRM PRO</span>
-        <h1>Validando o workspace e carregando seus dados...</h1>
+        <h1>Validando a sessão e carregando seu workspace...</h1>
         <div className="pro-boot-line"><i /></div>
       </main>
     );

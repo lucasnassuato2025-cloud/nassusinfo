@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { claimWorkspaceWithRetry } from "@/lib/auth-session";
 import { neonClient } from "@/lib/neon";
 import { DocumentsCenterV2 } from "./documents-center-v2";
 
@@ -21,9 +22,8 @@ function errorText(reason: unknown): string {
   return String(reason || "");
 }
 
-async function deleteDocumentByNumber(number: string) {
-  const claim = await (neonClient as any).rpc("crm_claim_membership");
-  if (claim.error) throw claim.error;
+async function moveDocumentToTrash(number: string) {
+  await claimWorkspaceWithRetry();
 
   const lookup = await (neonClient.from("commercial_documents") as any)
     .select("id, number, document_type, status")
@@ -32,22 +32,17 @@ async function deleteDocumentByNumber(number: string) {
   if (lookup.error) throw lookup.error;
 
   const document = (Array.isArray(lookup.data) ? lookup.data[0] : lookup.data) as DocumentLookup | undefined;
-  if (!document?.id) throw new Error("Documento não encontrado no workspace.");
+  if (!document?.id) throw new Error("Documento não encontrado no workspace ou já está na lixeira.");
 
-  const documentId = Number(document.id);
-  const relatedTables = [
-    "document_signing_links",
-    "document_signatures",
-    "document_versions",
-  ];
+  const result = await (neonClient as any).rpc("crm_soft_delete", {
+    p_table: "commercial_documents",
+    p_id: Number(document.id),
+    p_reason: "Movido para a lixeira pela Central de Documentos",
+  });
+  if (result.error) throw result.error;
+  if (!result.data) throw new Error("O servidor não confirmou a exclusão do documento.");
 
-  for (const tableName of relatedTables) {
-    const result = await (neonClient as any).from(tableName).delete().eq("document_id", documentId);
-    if (result.error) throw result.error;
-  }
-
-  const remove = await (neonClient.from("commercial_documents") as any).delete().eq("id", documentId);
-  if (remove.error) throw remove.error;
+  return { document, batch: String(result.data) };
 }
 
 function installDeleteButtons(root: ParentNode) {
@@ -63,24 +58,22 @@ function installDeleteButtons(root: ParentNode) {
     button.className = "danger";
     button.textContent = "Excluir";
     button.setAttribute("data-document-delete", "true");
-    button.setAttribute("aria-label", `Excluir documento ${number}`);
+    button.setAttribute("aria-label", `Mover documento ${number} para a lixeira`);
 
     button.addEventListener("click", async () => {
       const status = card.querySelector(".document-status")?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
       const signedWarning = status.includes("assinado")
-        ? "\n\nATENÇÃO: este documento está assinado. A assinatura, versões e links vinculados também serão apagados."
-        : "";
-      const confirmed = window.confirm(
-        `Excluir ${number}?\n\nEsta ação remove o documento e seus registros vinculados do CRM e não pode ser desfeita.${signedWarning}`,
-      );
+        ? "\n\nEste documento está assinado. Ele sairá da lista, mas versões, assinatura e evidências serão preservadas para integridade e auditoria."
+        : "\n\nO documento será enviado à lixeira do CRM e os links de assinatura ativos serão revogados.";
+      const confirmed = window.confirm(`Excluir ${number}?${signedWarning}`);
       if (!confirmed) return;
 
       button.disabled = true;
       button.textContent = "Excluindo...";
       try {
-        await deleteDocumentByNumber(number);
+        await moveDocumentToTrash(number);
         card.remove();
-        window.setTimeout(() => window.location.reload(), 150);
+        window.setTimeout(() => window.location.reload(), 120);
       } catch (reason) {
         button.disabled = false;
         button.textContent = "Excluir";

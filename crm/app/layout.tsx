@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
 
 import { CepAutofillAgent } from "@/components/cep-autofill-agent";
+import { ClientDiagnostics } from "@/components/client-diagnostics";
 
 import "./globals.css";
 import "./brand.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" className="nassus-black-edition">
       <body className={`${inter.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
         <CepAutofillAgent />
+        <ClientDiagnostics />
         {children}
       </body>
     </html>
