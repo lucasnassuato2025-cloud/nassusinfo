@@ -9,7 +9,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
   const normalized = normalizeCrmError(error, "O módulo encontrou um erro inesperado.");
 
   useEffect(() => {
-    reportClientIssue("route_error_boundary", error, { digest: error.digest || "" });
+    reportClientIssue("route_error_boundary", error, error.digest || "");
   }, [error]);
 
   return (
