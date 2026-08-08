@@ -46,6 +46,7 @@ function errorText(reason: unknown, fallback: string): string {
   const raw = reason && typeof reason === "object" && "message" in reason
     ? text((reason as { message?: unknown }).message)
     : text(reason);
+  if (/Registro de auditoria imutável/i.test(raw)) return "Este item possui evidência imutável e não pode ser destruído por esta ação.";
   if (/permission|row-level security|policy/i.test(raw)) return "Seu usuário não possui permissão para concluir esta ação.";
   if (/network|fetch|timeout/i.test(raw)) return "A conexão com o servidor falhou. Tente novamente.";
   return raw || fallback;
@@ -89,6 +90,18 @@ function daysLeft(value: string): string {
   if (days < 0) return "prazo encerrado";
   if (days === 0) return "expira hoje";
   return `${days} dia${days === 1 ? "" : "s"}`;
+}
+
+function isPurgeEligible(item: TrashRow): boolean {
+  if (item.protectedEvidence || !item.purgeAt) return false;
+  const purgeTime = new Date(item.purgeAt).getTime();
+  return Number.isFinite(purgeTime) && purgeTime <= Date.now();
+}
+
+function nextPurgeItem(items: TrashRow[]): TrashRow | null {
+  return items
+    .filter((item) => !item.protectedEvidence && item.purgeAt && !isPurgeEligible(item))
+    .sort((a, b) => new Date(a.purgeAt).getTime() - new Date(b.purgeAt).getTime())[0] || null;
 }
 
 export function DocumentsCenterV4(props: Props) {
@@ -172,11 +185,22 @@ export function DocumentsCenterV4(props: Props) {
   }
 
   async function purgeBatch(batchId: string, items: TrashRow[]) {
+    const eligibleItems = items.filter(isPurgeEligible);
     const protectedItems = items.filter((item) => item.protectedEvidence);
+    const nextItem = nextPurgeItem(items);
+
+    if (!eligibleItems.length) {
+      setError("");
+      setNotice(nextItem
+        ? `Nenhum item pode ser expurgado ainda. Próximo prazo: ${dateTime(nextItem.purgeAt)} (${daysLeft(nextItem.purgeAt)}).`
+        : "Este lote contém somente evidências com retenção protegida e não pode ser expurgado.");
+      return;
+    }
+
     const warning = protectedItems.length
       ? `\n\n${protectedItems.length} evidência(s) contratual(is) protegida(s) NÃO serão destruídas pelo expurgo.`
       : "";
-    if (!window.confirm(`Apagar definitivamente os itens elegíveis deste lote? Esta ação não pode ser desfeita.${warning}`)) return;
+    if (!window.confirm(`Apagar definitivamente ${eligibleItems.length} item(ns) elegível(is) deste lote? Esta ação não pode ser desfeita.${warning}`)) return;
 
     setBusyId(`purge:${batchId}`);
     setError("");
@@ -184,7 +208,10 @@ export function DocumentsCenterV4(props: Props) {
       await claimWorkspaceWithRetry();
       const result = await (neonClient as any).rpc("crm_purge_trash_batch", { p_batch: batchId });
       if (result.error) throw result.error;
-      setNotice(`${Number(result.data || 0)} registro(s) elegível(is) apagado(s) definitivamente.`);
+      const deleted = Number(result.data || 0);
+      setNotice(deleted > 0
+        ? `${deleted} registro(s) elegível(is) apagado(s) definitivamente.`
+        : "Nenhum registro foi expurgado. O banco preservou os itens por retenção, evidência ou dependências relacionadas.");
       setVersion((value) => value + 1);
     } catch (reason) {
       setError(errorText(reason, "Não foi possível concluir o expurgo."));
@@ -226,10 +253,19 @@ export function DocumentsCenterV4(props: Props) {
           {trashBatches.length ? trashBatches.map(([batchId, items]) => {
             const first = items[0];
             const protectedCount = items.filter((item) => item.protectedEvidence).length;
+            const eligibleCount = items.filter(isPurgeEligible).length;
+            const nextItem = nextPurgeItem(items);
+            const purgeLabel = eligibleCount > 0
+              ? `Expurgar elegíveis (${eligibleCount})`
+              : protectedCount === items.length
+                ? "Retenção protegida"
+                : nextItem
+                  ? `Expurgo em ${daysLeft(nextItem.purgeAt)}`
+                  : "Nenhum elegível";
             return <article className={styles.batch} key={batchId}>
               <div className={styles.batchHeader}>
                 <div><strong>{items.length} item(ns) · {dateTime(first.deletedAt)}</strong><small>Excluído por {first.deletedByName} · expurgo em {daysLeft(first.purgeAt)}</small></div>
-                <div>{protectedCount > 0 && <span className={styles.protected}>{protectedCount} evidência(s) protegida(s)</span>}<button type="button" disabled={busyId === `restore:${batchId}`} onClick={() => void restoreBatch(batchId)}>Restaurar lote</button><button type="button" className={styles.danger} disabled={busyId === `purge:${batchId}`} onClick={() => void purgeBatch(batchId, items)}>Expurgar elegíveis</button></div>
+                <div>{protectedCount > 0 && <span className={styles.protected}>{protectedCount} evidência(s) protegida(s)</span>}<button type="button" disabled={busyId === `restore:${batchId}`} onClick={() => void restoreBatch(batchId)}>Restaurar lote</button><button type="button" className={styles.danger} disabled={busyId === `purge:${batchId}` || eligibleCount === 0} title={eligibleCount === 0 ? "O prazo de retenção ainda não venceu ou o lote contém evidência protegida." : "Apagar definitivamente apenas os itens cujo prazo venceu."} onClick={() => void purgeBatch(batchId, items)}>{busyId === `purge:${batchId}` ? "Expurgando..." : purgeLabel}</button></div>
               </div>
               <ul>{items.map((item) => <li key={`${item.tableName}:${item.recordId}`}><div><span>{item.recordType}</span><strong>{item.label}</strong><small>{item.deletedReason || "Sem motivo informado"}</small></div>{item.protectedEvidence && <em>EVIDÊNCIA CONTRATUAL — RETENÇÃO PROTEGIDA</em>}</li>)}</ul>
             </article>;
