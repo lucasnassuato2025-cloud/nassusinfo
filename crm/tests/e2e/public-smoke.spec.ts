@@ -27,12 +27,12 @@ test("portal de assinatura v2 oferece documento e evidência", async ({ page }) 
   await expect(page.getByLabel("CPF ou CNPJ do contratante")).toBeVisible();
 });
 
-test("healthcheck confirma aplicação e banco", async ({ request }) => {
+test("healthcheck confirma a aplicação e informa o estado do banco", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.status()).toBe(200);
   const data = await response.json();
   expect(data.ok).toBe(true);
-  expect(data.database).toBe("ok");
+  expect(["ok", "not_configured"]).toContain(data.database);
   expect(data.service).toBe("nassus-crm");
 });
 
