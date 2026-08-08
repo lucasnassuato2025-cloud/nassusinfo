@@ -5,7 +5,7 @@ export async function sha256Hex(value: string): Promise<string> {
 }
 
 export async function callPublicSigningRpc<T>(
-  name: "public_open_signing_document" | "public_submit_document_signature",
+  name: "public_open_signing_document" | "public_submit_document_signature" | "public_get_signature_evidence",
   payload: Record<string, unknown>,
 ): Promise<T> {
   const response = await fetch("/api/public-signing", {
