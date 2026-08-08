@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
+import { waitForAuthenticatedUser } from "@/lib/auth-session";
 import { neonClient } from "@/lib/neon";
 import styles from "../auth-recovery.module.css";
 
@@ -10,14 +11,19 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     async function redirectAuthenticatedUser() {
-      const result = await neonClient.auth.getSession();
-      const data = result.data as
-        | { user?: unknown; session?: { user?: unknown } | null }
-        | null;
-      if (data?.user || data?.session?.user) window.location.replace("/");
+      try {
+        const user = await waitForAuthenticatedUser(undefined, 2);
+        if (active && user?.email) window.location.replace("/");
+      } catch {
+        // A tela de login continua disponível quando a consulta inicial de sessão falha.
+      }
     }
+
     void redirectAuthenticatedUser();
+    return () => { active = false; };
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -35,9 +41,17 @@ export default function SignInPage() {
         setError(result.error.message || "E-mail ou senha incorretos.");
         return;
       }
+
+      const confirmedUser = await waitForAuthenticatedUser(email);
+      if (!confirmedUser?.email) {
+        setError("O acesso foi aceito, mas a sessão ainda não ficou disponível. Tente entrar novamente.");
+        return;
+      }
+
       window.location.replace("/");
-    } catch {
-      setError("O serviço de autenticação não respondeu. Tente novamente.");
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : String((reason as { message?: unknown } | null)?.message || "");
+      setError(/invalid|password|credential/i.test(message) ? "E-mail ou senha incorretos." : "O serviço de autenticação não respondeu corretamente. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +74,7 @@ export default function SignInPage() {
         <div className="pro-auth-features">
           <div><strong>Cliente 360°</strong><small>Dados, projetos, pagamentos e histórico em uma única ficha.</small></div>
           <div><strong>Operação e financeiro</strong><small>Controle entregas, Pix, cartão, parcelas e vencimentos.</small></div>
-          <div><strong>Documentos e auditoria</strong><small>Gere propostas, contratos, recibos e análises de sites.</small></div>
+          <div><strong>Documentos e auditoria</strong><small>Gere propostas, contratos, comprovantes e análises de sites.</small></div>
         </div>
       </section>
 
@@ -83,7 +97,7 @@ export default function SignInPage() {
               <a className={styles.recoveryLink} href="/forgot-password">Esqueci minha senha</a>
             </div>
             {error && <p className="pro-auth-error" role="alert">{error}</p>}
-            <button type="submit" disabled={loading}>{loading ? "Validando acesso..." : "Entrar no CRM"}</button>
+            <button type="submit" disabled={loading}>{loading ? "Validando acesso e sessão..." : "Entrar no CRM"}</button>
           </form>
 
           <div className="pro-auth-private-note"><strong>CRM privado da Nassusinfo</strong><small>Novos acessos são liberados somente pelo administrador.</small></div>
