@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import PWARegister from "@/components/pwa-register";
 import "./globals.css";
 import "./modules.css";
+import "./modules-fixes.css";
 
 export const metadata: Metadata = {
   title: { default: "Nassus Gestão", template: "%s | Nassus Gestão" },
