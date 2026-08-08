@@ -22,14 +22,19 @@ import "./cep-autofill.css";
 import "./crm-v4.css";
 import "./receipt.css";
 import "./documents-v2.css";
+import "./pro-ui2.css";
+import "./pro-ui2-modules.css";
+import "./pro-ui2-finishing.css";
+import "./pro-ui2-documents.css";
+import "./pro-ui2-admin.css";
 
 const inter = Inter({ variable: "--font-nassus-body", subsets: ["latin"], display: "swap" });
 const manrope = Manrope({ variable: "--font-nassus-display", subsets: ["latin"], display: "swap" });
 const jetBrainsMono = JetBrains_Mono({ variable: "--font-nassus-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Nassus CRM Black Edition | Central de Negócios",
-  description: "Gestão comercial, operação, infraestrutura e inteligência da Nassusinfo.",
+  title: "Nassus CRM Pro | Central de Negócios",
+  description: "Gestão comercial, operação, documentos, financeiro e governança da Nassusinfo.",
   robots: { index: false, follow: false },
   icons: {
     icon: [
@@ -41,11 +46,11 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { themeColor: "#060912", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#1d2327", colorScheme: "light" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className="nassus-black-edition">
+    <html lang="pt-BR" className="nassus-black-edition nassus-pro-ui2">
       <body className={`${inter.variable} ${manrope.variable} ${jetBrainsMono.variable}`}>
         <CepAutofillAgent />
         <ClientDiagnostics />

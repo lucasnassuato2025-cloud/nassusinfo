@@ -1,0 +1,25 @@
+/* Document/receipt V2 surfaces that intentionally overrode the old dark theme. */
+html.nassus-pro-ui2 .documents-error{border:1px solid #efb9ba!important;border-left:4px solid #d63638!important;border-radius:4px!important;background:#fff1f1!important;color:#8a2424!important}
+html.nassus-pro-ui2 .documents-error span{color:#8a2424!important}
+html.nassus-pro-ui2 .documents-warning{border:1px solid #edc967!important;border-left:4px solid #dba617!important;border-radius:4px!important;background:#fff8e5!important}
+html.nassus-pro-ui2 .documents-warning strong{color:#674d00!important}
+html.nassus-pro-ui2 .documents-warning p{color:#755d24!important}
+html.nassus-pro-ui2 .receipt-primary{border:1px solid #00a32a!important;border-radius:4px!important;background:#00a32a!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .receipt-primary:hover{background:#008a20!important;filter:none!important}
+html.nassus-pro-ui2 .receipt-editor-v2,html.nassus-pro-ui2 .contract-editor-v2{background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .receipt-editor-v2>header,html.nassus-pro-ui2 .contract-editor-v2>header{border-bottom-color:#dcdcde!important}
+html.nassus-pro-ui2 .receipt-editor-v2>header p,html.nassus-pro-ui2 .contract-editor-v2>header p{color:#646970!important}
+html.nassus-pro-ui2 .receipt-quick-fill{border:1px solid #c3d9ec!important;border-radius:8px!important;background:#f0f6fc!important}
+html.nassus-pro-ui2 .receipt-quick-fill label,html.nassus-pro-ui2 .receipt-minimal-grid label,html.nassus-pro-ui2 .receipt-optional label{color:#3c434a!important}
+html.nassus-pro-ui2 .receipt-quick-fill select,html.nassus-pro-ui2 .receipt-minimal-grid input,html.nassus-pro-ui2 .receipt-minimal-grid select,html.nassus-pro-ui2 .receipt-optional select,html.nassus-pro-ui2 .document-notes textarea{border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .receipt-quick-fill select:focus,html.nassus-pro-ui2 .receipt-minimal-grid input:focus,html.nassus-pro-ui2 .receipt-minimal-grid select:focus,html.nassus-pro-ui2 .receipt-optional select:focus,html.nassus-pro-ui2 .document-notes textarea:focus{border-color:#2271b1!important;box-shadow:0 0 0 1px #2271b1!important}
+html.nassus-pro-ui2 .receipt-optional{border:1px solid #dcdcde!important;border-radius:8px!important;background:#f9fafb!important}
+html.nassus-pro-ui2 .receipt-optional summary{color:#3c434a!important}
+html.nassus-pro-ui2 .receipt-preview-line{border:1px solid #b8dfbf!important;border-radius:6px!important;background:#f0f8f1!important}
+html.nassus-pro-ui2 .receipt-preview-line span{color:#49644e!important}
+html.nassus-pro-ui2 .receipt-preview-line strong{color:#087a22!important}
+html.nassus-pro-ui2 .document-notes{color:#646970!important}
+html.nassus-pro-ui2 .profile-default{border:1px solid #c3d9ec!important;border-radius:6px!important;background:#f0f6fc!important;color:#1d2327!important}
+html.nassus-pro-ui2 .document-card-pro .type-recibo{border-color:#b8dfbf!important;background:#edf8ef!important;color:#087a22!important}
+html.nassus-pro-ui2 .document-card-pro:has(.type-recibo){box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .document-card-pro:has(.type-recibo) dl>div:last-child dd{color:#087a22!important}

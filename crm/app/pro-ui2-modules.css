@@ -1,0 +1,41 @@
+/* CSS-module surfaces that need global theme harmonization. */
+html.nassus-pro-ui2 .suite-brand small{font-size:0!important}
+html.nassus-pro-ui2 .suite-brand small::after{content:"PRO ADMIN";font-size:8px;letter-spacing:.14em;color:#a7aaad}
+
+/* Document lifecycle module */
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__lifecycle"]{border-color:#dcdcde!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__heading"] h2{color:#1d2327!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__heading"] span{color:#2271b1!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__heading"] p,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__manager"] small,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__trash"] small{color:#646970!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__actions"] button,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__batchHeader"] button{border-color:#2271b1!important;border-radius:4px!important;background:#fff!important;color:#2271b1!important;box-shadow:none!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__actions"] button:hover,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__batchHeader"] button:hover{background:#f6f7f7!important;color:#135e96!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__manager"] article,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__batch"]{border-color:#dcdcde!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__batchHeader"]{border-color:#dcdcde!important;background:#f6f7f7!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__trash"] li{border-color:#f0f0f1!important;background:#fff!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__rowActions"] em,
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__protected"],
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__trash"] li em{border-color:#edc967!important;background:#fff8e5!important;color:#7a5600!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__danger"]{border-color:#d63638!important;background:#fff!important;color:#b32d2e!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__notice"]{border:1px solid #b8dfbf!important;border-left:4px solid #00a32a!important;background:#f0f8f1!important;color:#145c23!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__error"]{border:1px solid #efb9ba!important;border-left:4px solid #d63638!important;background:#fff1f1!important;color:#8a2424!important}
+html.nassus-pro-ui2 [class*="documents-lifecycle-module__"][class*="__empty"]{border-color:#c3c4c7!important;background:#f9fafb!important;color:#646970!important}
+
+/* Recovery/auth helper module */
+html.nassus-pro-ui2 [class*="auth-recovery-module__"]{color:#646970}
+html.nassus-pro-ui2 a[class*="auth-recovery-module__"][class*="recoveryLink"]{color:#2271b1!important;text-decoration:none!important;font-weight:700!important}
+html.nassus-pro-ui2 a[class*="auth-recovery-module__"][class*="recoveryLink"]:hover{color:#135e96!important;text-decoration:underline!important}
+
+/* Generic module cards/panels introduced by Governance V2 */
+html.nassus-pro-ui2 [class*="governance-module__"][class*="panel"],
+html.nassus-pro-ui2 [class*="governance-module__"][class*="card"],
+html.nassus-pro-ui2 [class*="governance-v2-module__"][class*="panel"],
+html.nassus-pro-ui2 [class*="governance-v2-module__"][class*="card"]{border-color:#dcdcde!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 [class*="governance-module__"] input,
+html.nassus-pro-ui2 [class*="governance-module__"] select,
+html.nassus-pro-ui2 [class*="governance-v2-module__"] input,
+html.nassus-pro-ui2 [class*="governance-v2-module__"] select{border-color:#8c8f94!important;background:#fff!important;color:#1d2327!important}

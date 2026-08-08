@@ -1,0 +1,51 @@
+/* Administration / governance / executive V4 in the Pro UI 2.0 theme. */
+html.nassus-pro-ui2 .admin-tabs{top:82px!important;padding:5px!important;border:1px solid #dcdcde!important;border-radius:6px!important;background:rgba(255,255,255,.97)!important;box-shadow:0 4px 16px rgba(0,0,0,.06)!important}
+html.nassus-pro-ui2 .admin-tabs button{padding:9px 13px!important;border-radius:4px!important;color:#646970!important}
+html.nassus-pro-ui2 .admin-tabs button:hover{background:#f0f0f1!important;color:#2271b1!important}
+html.nassus-pro-ui2 .admin-tabs button.active{background:#2271b1!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .admin-tabs button b{background:rgba(255,255,255,.18)!important;color:inherit!important}
+html.nassus-pro-ui2 .admin-feedback{border-radius:4px!important}
+html.nassus-pro-ui2 .admin-feedback.success{border:1px solid #b8dfbf!important;border-left:4px solid #00a32a!important;background:#f0f8f1!important;color:#145c23!important}
+html.nassus-pro-ui2 .admin-feedback.error{border:1px solid #efb9ba!important;border-left:4px solid #d63638!important;background:#fff1f1!important;color:#8a2424!important}
+html.nassus-pro-ui2 .admin-section-head,html.nassus-pro-ui2 .executive-hero{padding:22px!important;border:1px solid #dcdcde!important;border-radius:10px!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .admin-section-head span,html.nassus-pro-ui2 .executive-hero>div>span,html.nassus-pro-ui2 .team-editor header span,html.nassus-pro-ui2 .team-list header span,html.nassus-pro-ui2 .backup-card>span{color:#2271b1!important}
+html.nassus-pro-ui2 .admin-section-head h2,html.nassus-pro-ui2 .executive-hero h2,html.nassus-pro-ui2 .team-editor h2,html.nassus-pro-ui2 .team-list h2{color:#1d2327!important}
+html.nassus-pro-ui2 .admin-section-head p,html.nassus-pro-ui2 .executive-hero p,html.nassus-pro-ui2 .team-editor p{color:#646970!important}
+html.nassus-pro-ui2 .admin-record-group,html.nassus-pro-ui2 .trash-card,html.nassus-pro-ui2 .team-editor,html.nassus-pro-ui2 .team-list,html.nassus-pro-ui2 .backup-card,html.nassus-pro-ui2 .backup-guidance{border:1px solid #dcdcde!important;border-radius:10px!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .admin-record-group>header{border-bottom-color:#dcdcde!important;background:#f6f7f7!important}
+html.nassus-pro-ui2 .admin-record-group h3,html.nassus-pro-ui2 .trash-card h3,html.nassus-pro-ui2 .backup-card h2{color:#1d2327!important}
+html.nassus-pro-ui2 .admin-record-group>div>section,html.nassus-pro-ui2 .team-list>section,html.nassus-pro-ui2 .risk-list>div{border-bottom-color:#f0f0f1!important}
+html.nassus-pro-ui2 .admin-record-group section strong,html.nassus-pro-ui2 .team-list section strong,html.nassus-pro-ui2 .risk-list strong{color:#1d2327!important}
+html.nassus-pro-ui2 .admin-record-group section small,html.nassus-pro-ui2 .trash-card small,html.nassus-pro-ui2 .team-list section small,html.nassus-pro-ui2 .risk-list small{color:#646970!important}
+html.nassus-pro-ui2 .admin-record-group button,html.nassus-pro-ui2 .trash-card button,html.nassus-pro-ui2 .team-list button{border:1px solid #2271b1!important;border-radius:4px!important;background:#fff!important;color:#2271b1!important}
+html.nassus-pro-ui2 .admin-record-group button:hover,html.nassus-pro-ui2 .trash-card button:hover,html.nassus-pro-ui2 .team-list button:hover{background:#f6f7f7!important;color:#135e96!important}
+html.nassus-pro-ui2 .admin-record-group button.danger,html.nassus-pro-ui2 .trash-card button.danger,html.nassus-pro-ui2 .team-list button.danger{border-color:#d63638!important;background:#fff!important;color:#b32d2e!important}
+html.nassus-pro-ui2 .trash-card>header span{color:#6c5ce7!important}
+html.nassus-pro-ui2 .trash-card>header>b{color:#996800!important}
+html.nassus-pro-ui2 .trash-related span{border-color:#dcdcde!important;background:#f6f7f7!important;color:#646970!important}
+html.nassus-pro-ui2 .admin-form-grid label,html.nassus-pro-ui2 .executive-goal-editor label{color:#3c434a!important}
+html.nassus-pro-ui2 .admin-form-grid input,html.nassus-pro-ui2 .admin-form-grid select,html.nassus-pro-ui2 .executive-goal-editor input{border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .admin-form-grid input:focus,html.nassus-pro-ui2 .admin-form-grid select:focus,html.nassus-pro-ui2 .executive-goal-editor input:focus{border-color:#2271b1!important;box-shadow:0 0 0 1px #2271b1!important}
+html.nassus-pro-ui2 .permission-grid label{border:1px solid #dcdcde!important;border-radius:6px!important;background:#f9fafb!important;color:#3c434a!important}
+html.nassus-pro-ui2 .team-avatar{border-radius:50%!important;background:#eaf3fb!important;color:#0a4b78!important}
+html.nassus-pro-ui2 .team-status.status-active{background:#edf8ef!important;color:#087a22!important}
+html.nassus-pro-ui2 .team-status.status-invited{background:#fff8e5!important;color:#996800!important}
+html.nassus-pro-ui2 .team-status.status-suspended{background:#fff1f1!important;color:#b32d2e!important}
+html.nassus-pro-ui2 .backup-card.warning{border-color:#edc967!important}
+html.nassus-pro-ui2 .backup-card p,html.nassus-pro-ui2 .backup-guidance p{color:#646970!important}
+html.nassus-pro-ui2 .backup-upload{border:1px solid #dba617!important;border-radius:4px!important;background:#fff8e5!important;color:#674d00!important}
+html.nassus-pro-ui2 .backup-guidance{background:#f0f6fc!important}
+html.nassus-pro-ui2 .backup-guidance strong{color:#1d2327!important}
+
+/* Executive reports */
+html.nassus-pro-ui2 .executive-metrics article{border:1px solid #dcdcde!important;border-radius:10px!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .executive-metrics article:after{opacity:.45!important}
+html.nassus-pro-ui2 .executive-metrics span,html.nassus-pro-ui2 .executive-metrics small{color:#646970!important}
+html.nassus-pro-ui2 .executive-metrics strong{color:#1d2327!important}
+html.nassus-pro-ui2 .executive-metrics article>i,html.nassus-pro-ui2 .executive-funnel>div>i,html.nassus-pro-ui2 .channel-chart>div>i{background:#e5e5e5!important}
+html.nassus-pro-ui2 .executive-metrics article>i em,html.nassus-pro-ui2 .executive-funnel em,html.nassus-pro-ui2 .channel-chart em{background:#2271b1!important}
+html.nassus-pro-ui2 .chart-grid-line{stroke:#e5e5e5!important}
+html.nassus-pro-ui2 .chart-area{fill:rgba(34,113,177,.08)!important}
+html.nassus-pro-ui2 .chart-line{stroke:#2271b1!important;filter:none!important}
+html.nassus-pro-ui2 .chart-point{fill:#fff!important;stroke:#2271b1!important}
+html.nassus-pro-ui2 .executive-chart-labels span,html.nassus-pro-ui2 .executive-funnel header span,html.nassus-pro-ui2 .channel-chart header span,html.nassus-pro-ui2 .executive-funnel small,html.nassus-pro-ui2 .channel-chart small{color:#646970!important}
