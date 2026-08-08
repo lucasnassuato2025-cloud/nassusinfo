@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AdministrationModule as LegacyAdministrationModule } from "./administration-module";
 import { GovernanceCenter } from "./governance-center";
+import { PrivacyExecutionPanel } from "./privacy-execution-panel";
 
 type Props = React.ComponentProps<typeof LegacyAdministrationModule>;
 
@@ -17,9 +18,12 @@ export function AdministrationModuleV2(props: Props) {
         <button type="button" className={mode === "governance" ? "active" : ""} onClick={() => setMode("governance")}>Governança V2</button>
         <button type="button" className={mode === "operations" ? "active" : ""} onClick={() => setMode("operations")}>Dados, equipe e lixeira</button>
       </nav>
-      {mode === "governance"
-        ? <GovernanceCenter canManage={canManage} />
-        : <LegacyAdministrationModule {...props} />}
+      {mode === "governance" ? (
+        <>
+          <GovernanceCenter canManage={canManage} />
+          <PrivacyExecutionPanel canManage={canManage} />
+        </>
+      ) : <LegacyAdministrationModule {...props} />}
     </div>
   );
 }
