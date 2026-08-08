@@ -1,0 +1,74 @@
+/* Final visual harmonization for modules with dedicated stylesheets. */
+html.nassus-pro-ui2 .pro-app input:not([type="checkbox"]):not([type="radio"]),
+html.nassus-pro-ui2 .pro-app select,
+html.nassus-pro-ui2 .pro-app textarea,
+html.nassus-pro-ui2 .suite-app input:not([type="checkbox"]):not([type="radio"]),
+html.nassus-pro-ui2 .suite-app select,
+html.nassus-pro-ui2 .suite-app textarea{border-color:#8c8f94!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .pro-app input:not([type="checkbox"]):not([type="radio"]):focus,
+html.nassus-pro-ui2 .pro-app select:focus,
+html.nassus-pro-ui2 .pro-app textarea:focus,
+html.nassus-pro-ui2 .suite-app input:not([type="checkbox"]):not([type="radio"]):focus,
+html.nassus-pro-ui2 .suite-app select:focus,
+html.nassus-pro-ui2 .suite-app textarea:focus{border-color:#2271b1!important;box-shadow:0 0 0 1px #2271b1!important;outline:none!important}
+
+/* Infrastructure */
+html.nassus-pro-ui2 .infra-tabs{padding:5px!important;border-color:#dcdcde!important;border-radius:6px!important;background:#fff!important}
+html.nassus-pro-ui2 .infra-tabs button{border-radius:4px!important;color:#646970!important}
+html.nassus-pro-ui2 .infra-tabs button:hover{background:#f0f0f1!important;color:#2271b1!important}
+html.nassus-pro-ui2 .infra-tabs button.active{background:#2271b1!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .infra-metrics{gap:14px!important}
+html.nassus-pro-ui2 .infra-metrics article{border-color:#dcdcde!important;border-radius:10px!important;background:#fff!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .infra-metrics span,html.nassus-pro-ui2 .infra-metrics small{color:#646970!important}
+html.nassus-pro-ui2 .infra-metrics strong{color:#1d2327!important}
+html.nassus-pro-ui2 .infra-risk,html.nassus-pro-ui2 .infra-upcoming,html.nassus-pro-ui2 .infra-panel{border-color:#dcdcde!important;border-radius:10px!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 .infra-risk h3,html.nassus-pro-ui2 .infra-upcoming h3{color:#1d2327!important}
+html.nassus-pro-ui2 .infra-risk header span,html.nassus-pro-ui2 .infra-upcoming header span{color:#2271b1!important}
+html.nassus-pro-ui2 .infra-risk button,html.nassus-pro-ui2 .infra-upcoming button{border-color:#dcdcde!important;border-radius:6px!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .infra-risk button:hover,html.nassus-pro-ui2 .infra-upcoming button:hover{border-color:#72aee6!important;background:#f6f7f7!important}
+html.nassus-pro-ui2 .infra-risk strong,html.nassus-pro-ui2 .infra-upcoming strong{color:#1d2327!important}
+html.nassus-pro-ui2 .infra-risk small,html.nassus-pro-ui2 .infra-upcoming small{color:#646970!important}
+html.nassus-pro-ui2 .infra-security-note,html.nassus-pro-ui2 .infra-password-warning{border-color:#edc967!important;border-radius:6px!important;background:#fff8e5!important;color:#674d00!important}
+html.nassus-pro-ui2 .infra-security-note span,html.nassus-pro-ui2 .infra-password-warning span{color:#755d24!important}
+html.nassus-pro-ui2 .infra-edit{border-color:#2271b1!important;border-radius:4px!important;background:#fff!important;color:#2271b1!important}
+html.nassus-pro-ui2 .infra-edit:hover{background:#f6f7f7!important;color:#135e96!important}
+html.nassus-pro-ui2 .infra-pill,html.nassus-pro-ui2 .infra-alert{border-radius:999px!important}
+
+/* Administration / governance common surfaces */
+html.nassus-pro-ui2 [class*="governance"],html.nassus-pro-ui2 [class*="admin-"]{--nx-text:#1d2327;--nx-text-soft:#3c434a;--nx-muted:#646970;--nx-line:#dcdcde;--nx-line-strong:#c3c4c7}
+html.nassus-pro-ui2 [class*="governance"] article,html.nassus-pro-ui2 [class*="governance"] section[class*="card"],html.nassus-pro-ui2 [class*="admin-"] article[class*="card"]{border-color:#dcdcde!important;background:#fff!important;color:#1d2327!important;box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.05)!important}
+html.nassus-pro-ui2 [class*="governance"] h2,html.nassus-pro-ui2 [class*="governance"] h3,html.nassus-pro-ui2 [class*="admin-"] h2,html.nassus-pro-ui2 [class*="admin-"] h3{color:#1d2327!important}
+html.nassus-pro-ui2 [class*="governance"] p,html.nassus-pro-ui2 [class*="governance"] small,html.nassus-pro-ui2 [class*="admin-"] p,html.nassus-pro-ui2 [class*="admin-"] small{color:#646970!important}
+html.nassus-pro-ui2 [class*="governance"] table,html.nassus-pro-ui2 [class*="admin-"] table{background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 [class*="governance"] th,html.nassus-pro-ui2 [class*="admin-"] th{border-color:#dcdcde!important;background:#f6f7f7!important;color:#3c434a!important}
+html.nassus-pro-ui2 [class*="governance"] td,html.nassus-pro-ui2 [class*="admin-"] td{border-color:#f0f0f1!important;background:#fff!important;color:#3c434a!important}
+
+/* Reports and alert utility panels */
+html.nassus-pro-ui2 [class*="report-"],html.nassus-pro-ui2 [class*="reports-"]{color:#1d2327}
+html.nassus-pro-ui2 [class*="report-"] article,html.nassus-pro-ui2 [class*="reports-"] article{border-color:#dcdcde!important;background:#fff!important;box-shadow:0 1px 2px rgba(0,0,0,.04)!important}
+
+/* Document settings remaining dark surfaces */
+html.nassus-pro-ui2 .contract-selector,html.nassus-pro-ui2 .catalog-list article,html.nassus-pro-ui2 .clause-list article,html.nassus-pro-ui2 .service-selector article,html.nassus-pro-ui2 .clause-selector label{border-color:#dcdcde!important;background:#fff!important}
+html.nassus-pro-ui2 .service-selector article.selected,html.nassus-pro-ui2 .clause-selector label.selected{border-color:#72aee6!important;background:#f0f6fc!important}
+html.nassus-pro-ui2 .service-selector article>input{border-color:#8c8f94!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .profile-cards dl div{border-color:#f0f0f1!important}
+html.nassus-pro-ui2 .profile-cards dt{color:#646970!important}
+html.nassus-pro-ui2 .profile-cards dd{color:#3c434a!important}
+html.nassus-pro-ui2 .profile-cards button{border-color:#2271b1!important;border-radius:4px!important;background:#fff!important;color:#2271b1!important}
+html.nassus-pro-ui2 .share-modal input{border-color:#8c8f94!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .share-modal label button{border-color:#2271b1!important;border-radius:4px!important;background:#fff!important;color:#2271b1!important}
+
+/* Signing V2 detail surfaces */
+html.nassus-pro-ui2 .sign-parties>div,html.nassus-pro-ui2 .sign-project,html.nassus-pro-ui2 .sign-fields,html.nassus-pro-ui2 .sign-consent,html.nassus-pro-ui2 .sign-evidence-card,html.nassus-pro-ui2 .sign-complete-card{border-color:#dcdcde!important;background:#fff!important;color:#1d2327!important}
+html.nassus-pro-ui2 .sign-parties p,html.nassus-pro-ui2 .sign-project p,html.nassus-pro-ui2 .sign-consent p,html.nassus-pro-ui2 .sign-evidence-card p,html.nassus-pro-ui2 .sign-complete-card p{color:#646970!important}
+html.nassus-pro-ui2 .sign-notice.sign-error{border-color:#efb9ba!important;background:#fff1f1!important;color:#8a2424!important}
+html.nassus-pro-ui2 .sign-notice.sign-success{border-color:#b8dfbf!important;background:#f0f8f1!important;color:#145c23!important}
+
+/* Preserve thermal receipt readability inside the light admin theme */
+html.nassus-pro-ui2 .receipt-paper,html.nassus-pro-ui2 .receipt-sheet{background:#fff!important;color:#111!important}
+
+/* Dense desktop administration similar to wp-admin, but comfortable */
+@media(min-width:901px){
+  html.nassus-pro-ui2 .compact-table tbody tr,html.nassus-pro-ui2 .business-table tbody tr{height:50px}
+  html.nassus-pro-ui2 .pro-panel-head{padding:17px 18px 14px!important}
+}
