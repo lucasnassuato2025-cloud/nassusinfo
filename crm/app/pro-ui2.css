@@ -1,0 +1,329 @@
+/* Nassus CRM Pro UI 2.0 — WordPress Admin familiarity + premium SaaS polish */
+:root{
+  --ui-bg:#f0f0f1;
+  --ui-bg-soft:#f6f7f7;
+  --ui-surface:#ffffff;
+  --ui-surface-soft:#f9fafb;
+  --ui-sidebar:#1d2327;
+  --ui-sidebar-hover:#2c3338;
+  --ui-sidebar-active:#2271b1;
+  --ui-topbar:#1d2327;
+  --ui-text:#1d2327;
+  --ui-text-2:#3c434a;
+  --ui-muted:#646970;
+  --ui-muted-2:#8c8f94;
+  --ui-line:#dcdcde;
+  --ui-line-strong:#c3c4c7;
+  --ui-blue:#2271b1;
+  --ui-blue-strong:#135e96;
+  --ui-blue-soft:#eaf3fb;
+  --ui-green:#00a32a;
+  --ui-green-soft:#edf8ef;
+  --ui-amber:#dba617;
+  --ui-amber-soft:#fff8e5;
+  --ui-red:#d63638;
+  --ui-red-soft:#fff1f1;
+  --ui-violet:#6c5ce7;
+  --ui-radius:10px;
+  --ui-radius-lg:14px;
+  --ui-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(29,35,39,.06);
+  --ui-shadow-lg:0 18px 55px rgba(29,35,39,.12);
+  --pro-bg:var(--ui-bg);
+  --pro-surface:var(--ui-surface);
+  --pro-surface-soft:var(--ui-bg-soft);
+  --pro-sidebar:var(--ui-sidebar);
+  --pro-sidebar-soft:var(--ui-sidebar-hover);
+  --pro-text:var(--ui-text);
+  --pro-muted:var(--ui-muted);
+  --pro-line:var(--ui-line);
+  --pro-blue:var(--ui-blue);
+  --pro-blue-dark:var(--ui-blue-strong);
+  --pro-green:var(--ui-green);
+  --pro-amber:var(--ui-amber);
+  --pro-red:var(--ui-red);
+  --pro-violet:var(--ui-violet);
+  --pro-shadow:var(--ui-shadow);
+}
+
+html.nassus-pro-ui2{background:var(--ui-bg);color-scheme:light}
+html.nassus-pro-ui2 body{margin:0;background:var(--ui-bg);color:var(--ui-text);font-family:var(--font-nassus-body),Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html.nassus-pro-ui2 h1,html.nassus-pro-ui2 h2,html.nassus-pro-ui2 h3,html.nassus-pro-ui2 h4,html.nassus-pro-ui2 strong{font-family:var(--font-nassus-display),Manrope,system-ui,sans-serif}
+html.nassus-pro-ui2 ::selection{background:#c7e0f4;color:#0a4b78}
+html.nassus-pro-ui2 ::-webkit-scrollbar{width:10px;height:10px}
+html.nassus-pro-ui2 ::-webkit-scrollbar-track{background:#f0f0f1}
+html.nassus-pro-ui2 ::-webkit-scrollbar-thumb{border:2px solid #f0f0f1;border-radius:999px;background:#a7aaad}
+html.nassus-pro-ui2 button:focus-visible,html.nassus-pro-ui2 a:focus-visible,html.nassus-pro-ui2 input:focus-visible,html.nassus-pro-ui2 select:focus-visible,html.nassus-pro-ui2 textarea:focus-visible{outline:2px solid #72aee6;outline-offset:1px}
+
+/* Global application shells */
+html.nassus-pro-ui2 .pro-app,html.nassus-pro-ui2 .suite-app{min-height:100vh;background:var(--ui-bg)!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-app::before,html.nassus-pro-ui2 .suite-app::before{display:none!important}
+html.nassus-pro-ui2 .pro-main,html.nassus-pro-ui2 .suite-main{margin-left:248px!important;min-height:100vh;background:var(--ui-bg)!important}
+
+/* WordPress-like premium sidebar */
+html.nassus-pro-ui2 .pro-sidebar,html.nassus-pro-ui2 .suite-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:248px!important;padding:0 0 16px!important;background:var(--ui-sidebar)!important;border-right:0!important;box-shadow:4px 0 20px rgba(0,0,0,.08)!important;color:#f0f0f1!important;z-index:70!important}
+html.nassus-pro-ui2 .pro-brand,html.nassus-pro-ui2 .suite-brand{min-height:64px!important;margin:0!important;padding:11px 15px!important;gap:10px!important;border-bottom:1px solid rgba(255,255,255,.08)!important;background:#15191c!important}
+html.nassus-pro-ui2 .pro-brand>span,html.nassus-pro-ui2 .suite-brand>span{width:40px!important;height:40px!important;flex:0 0 40px!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:9px!important;background:#111517 url('/api/brand-logo?v=9') center/cover no-repeat!important;box-shadow:0 7px 20px rgba(0,0,0,.28)!important}
+html.nassus-pro-ui2 .pro-brand strong,html.nassus-pro-ui2 .suite-brand strong{display:block!important;color:#fff!important;font-size:14px!important;font-weight:780!important;letter-spacing:-.02em!important}
+html.nassus-pro-ui2 .pro-brand small,html.nassus-pro-ui2 .suite-brand small{display:block!important;margin-top:2px!important;color:#a7aaad!important;font-size:8px!important;font-weight:750!important;letter-spacing:.14em!important}
+html.nassus-pro-ui2 .suite-nav-label{margin:18px 16px 7px!important;color:#8c8f94!important;font-size:8px!important;font-weight:800!important;letter-spacing:.15em!important}
+html.nassus-pro-ui2 .pro-sidebar nav{margin-top:12px!important;padding:0!important}
+html.nassus-pro-ui2 .suite-sidebar nav{padding:0!important}
+html.nassus-pro-ui2 .pro-sidebar nav,html.nassus-pro-ui2 .suite-sidebar nav{display:grid!important;gap:1px!important}
+html.nassus-pro-ui2 .pro-sidebar nav button,html.nassus-pro-ui2 .suite-sidebar nav button{position:relative!important;min-height:44px!important;margin:0!important;padding:0 15px!important;border:0!important;border-left:4px solid transparent!important;border-radius:0!important;background:transparent!important;color:#c3c4c7!important;font-size:12px!important;font-weight:650!important;text-align:left!important;box-shadow:none!important;transform:none!important}
+html.nassus-pro-ui2 .pro-sidebar nav button{grid-template-columns:29px 1fr auto!important}
+html.nassus-pro-ui2 .suite-sidebar nav button{gap:10px!important}
+html.nassus-pro-ui2 .pro-sidebar nav button:hover,html.nassus-pro-ui2 .suite-sidebar nav button:hover{background:var(--ui-sidebar-hover)!important;color:#72aee6!important;transform:none!important}
+html.nassus-pro-ui2 .pro-sidebar nav button.active,html.nassus-pro-ui2 .suite-sidebar nav button.active{border-left-color:#72aee6!important;background:var(--ui-blue)!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-sidebar nav i,html.nassus-pro-ui2 .suite-sidebar nav i{display:grid!important;place-items:center!important;width:24px!important;height:24px!important;border:0!important;border-radius:4px!important;background:transparent!important;color:currentColor!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-sidebar nav button.active i,html.nassus-pro-ui2 .suite-sidebar nav button.active i{background:transparent!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-sidebar nav b{min-width:22px!important;padding:2px 7px!important;border-radius:10px!important;background:rgba(255,255,255,.16)!important;color:#fff!important;font-size:9px!important}
+html.nassus-pro-ui2 .pro-sidebar-card,html.nassus-pro-ui2 .suite-help{margin-left:12px!important;margin-right:12px!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:8px!important;background:#23282d!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-sidebar-card span,html.nassus-pro-ui2 .suite-help span{color:#72aee6!important}
+html.nassus-pro-ui2 .pro-sidebar-card strong,html.nassus-pro-ui2 .suite-help strong{color:#fff!important}
+html.nassus-pro-ui2 .pro-sidebar-card small,html.nassus-pro-ui2 .suite-help small{color:#a7aaad!important}
+html.nassus-pro-ui2 .pro-profile,html.nassus-pro-ui2 .suite-user{margin-left:12px!important;margin-right:12px!important;padding-top:12px!important;border-top:1px solid rgba(255,255,255,.1)!important}
+html.nassus-pro-ui2 .pro-avatar,html.nassus-pro-ui2 .suite-user>div{border-radius:50%!important;background:#3858e9!important;color:#fff!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-profile strong,html.nassus-pro-ui2 .suite-user strong{color:#fff!important}
+html.nassus-pro-ui2 .pro-profile small,html.nassus-pro-ui2 .suite-user small{color:#a7aaad!important}
+html.nassus-pro-ui2 .pro-profile>button,html.nassus-pro-ui2 .suite-user button{background:transparent!important;color:#a7aaad!important}
+html.nassus-pro-ui2 .pro-profile>button:hover,html.nassus-pro-ui2 .suite-user button:hover{background:#2c3338!important;color:#fff!important}
+
+/* Admin top bars */
+html.nassus-pro-ui2 .pro-topbar,html.nassus-pro-ui2 .suite-topbar{position:sticky!important;top:0!important;z-index:55!important;min-height:72px!important;padding:12px 28px!important;border-bottom:1px solid var(--ui-line)!important;background:rgba(255,255,255,.96)!important;backdrop-filter:blur(14px)!important;box-shadow:0 1px 0 rgba(0,0,0,.02)!important}
+html.nassus-pro-ui2 .pro-topbar h1,html.nassus-pro-ui2 .suite-topbar h1{margin:3px 0 0!important;color:var(--ui-text)!important;font-size:24px!important;line-height:1.15!important;letter-spacing:-.035em!important}
+html.nassus-pro-ui2 .suite-topbar p{margin:4px 0 0!important;color:var(--ui-muted)!important;font-size:11px!important}
+html.nassus-pro-ui2 .pro-eyebrow,html.nassus-pro-ui2 .suite-topbar span,html.nassus-pro-ui2 .pro-panel-head span{color:var(--ui-blue)!important;font-size:9px!important;font-weight:850!important;letter-spacing:.13em!important}
+html.nassus-pro-ui2 .suite-live{color:#2c3338!important;border:1px solid #c7e4ca!important;background:#f0f8f1!important}
+html.nassus-pro-ui2 .suite-live i{background:var(--ui-green)!important}
+
+/* Buttons */
+html.nassus-pro-ui2 .pro-primary,html.nassus-pro-ui2 .primary-action,html.nassus-pro-ui2 .business-primary,html.nassus-pro-ui2 button.positive{min-height:38px!important;padding:0 14px!important;border:1px solid var(--ui-blue)!important;border-radius:4px!important;background:var(--ui-blue)!important;color:#fff!important;font-weight:700!important;box-shadow:0 1px 0 rgba(0,0,0,.05)!important}
+html.nassus-pro-ui2 .pro-primary:hover,html.nassus-pro-ui2 .primary-action:hover,html.nassus-pro-ui2 .business-primary:hover,html.nassus-pro-ui2 button.positive:hover{border-color:var(--ui-blue-strong)!important;background:var(--ui-blue-strong)!important;transform:none!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-secondary,html.nassus-pro-ui2 .pro-icon-button,html.nassus-pro-ui2 .row-actions button,html.nassus-pro-ui2 .project-card-actions button,html.nassus-pro-ui2 .business-secondary,html.nassus-pro-ui2 .suite-back,html.nassus-pro-ui2 .document-card-pro footer button,html.nassus-pro-ui2 .document-card footer button{min-height:36px!important;border:1px solid var(--ui-blue)!important;border-radius:4px!important;background:#fff!important;color:var(--ui-blue)!important;font-weight:700!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-secondary:hover,html.nassus-pro-ui2 .pro-icon-button:hover,html.nassus-pro-ui2 .row-actions button:hover,html.nassus-pro-ui2 .project-card-actions button:hover,html.nassus-pro-ui2 .business-secondary:hover,html.nassus-pro-ui2 .suite-back:hover,html.nassus-pro-ui2 .document-card-pro footer button:hover{border-color:var(--ui-blue-strong)!important;background:#f6f7f7!important;color:var(--ui-blue-strong)!important;transform:none!important}
+html.nassus-pro-ui2 .danger,html.nassus-pro-ui2 button.danger{border-color:#d63638!important;background:#fff!important;color:#b32d2e!important}
+html.nassus-pro-ui2 .danger:hover,html.nassus-pro-ui2 button.danger:hover{background:#fff1f1!important;color:#8a2424!important}
+html.nassus-pro-ui2 .pro-link{color:var(--ui-blue)!important;background:transparent!important}
+
+/* Content widths */
+html.nassus-pro-ui2 .pro-content{padding:28px clamp(22px,3vw,42px) 70px!important}
+html.nassus-pro-ui2 .suite-content{width:min(calc(100% - 48px),1500px)!important;margin:0 auto!important;padding:28px 0 72px!important}
+html.nassus-pro-ui2 .pro-stack{gap:20px!important}
+
+/* Premium dashboard cards */
+html.nassus-pro-ui2 .pro-metrics,html.nassus-pro-ui2 .business-metrics{gap:14px!important}
+html.nassus-pro-ui2 .pro-metric,html.nassus-pro-ui2 .business-metrics article{min-height:124px!important;padding:18px!important;border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;box-shadow:var(--ui-shadow)!important;color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-metric::after{display:none!important}
+html.nassus-pro-ui2 .pro-metric-head span,html.nassus-pro-ui2 .business-metrics span{color:var(--ui-muted)!important;font-size:10px!important}
+html.nassus-pro-ui2 .pro-metric strong,html.nassus-pro-ui2 .business-metrics strong{margin:12px 0 6px!important;color:var(--ui-text)!important;font-size:28px!important;letter-spacing:-.04em!important}
+html.nassus-pro-ui2 .pro-metric small,html.nassus-pro-ui2 .business-metrics small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .pro-metric-head i{width:8px!important;height:8px!important;box-shadow:0 0 0 4px currentColor!important;opacity:.28!important}
+
+/* White admin boxes */
+html.nassus-pro-ui2 .pro-panel,html.nassus-pro-ui2 .client360-list,html.nassus-pro-ui2 .client360-details,html.nassus-pro-ui2 .client360-tasks,html.nassus-pro-ui2 .client360-section,html.nassus-pro-ui2 .documents-panel,html.nassus-pro-ui2 .alerts-panel,html.nassus-pro-ui2 .document-center-panel,html.nassus-pro-ui2 .document-settings-panel,html.nassus-pro-ui2 .governance-panel{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;box-shadow:var(--ui-shadow)!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-panel-head,html.nassus-pro-ui2 .client360-details header,html.nassus-pro-ui2 .client360-tasks header,html.nassus-pro-ui2 .client360-section header{border-bottom:1px solid #f0f0f1!important}
+html.nassus-pro-ui2 .pro-panel-head h2,html.nassus-pro-ui2 .pro-toolbar h2,html.nassus-pro-ui2 .client360-details h3,html.nassus-pro-ui2 .client360-tasks h3,html.nassus-pro-ui2 .client360-section h3,html.nassus-pro-ui2 .alerts-toolbar h2{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-muted,html.nassus-pro-ui2 .business-muted{color:var(--ui-muted)!important}
+
+/* Tables — WordPress list-table inspired */
+html.nassus-pro-ui2 .compact-table-wrap,html.nassus-pro-ui2 .business-table-wrap{overflow:auto!important;border-radius:0 0 var(--ui-radius) var(--ui-radius)!important}
+html.nassus-pro-ui2 .compact-table,html.nassus-pro-ui2 .business-table{width:100%!important;border-collapse:collapse!important;background:#fff!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .compact-table thead,html.nassus-pro-ui2 .business-table thead{background:#f6f7f7!important}
+html.nassus-pro-ui2 .compact-table th,html.nassus-pro-ui2 .business-table th{padding:11px 12px!important;border-top:1px solid var(--ui-line)!important;border-bottom:1px solid var(--ui-line)!important;color:var(--ui-text-2)!important;font-size:10px!important;font-weight:750!important;letter-spacing:.02em!important;text-transform:none!important}
+html.nassus-pro-ui2 .compact-table td,html.nassus-pro-ui2 .business-table td{padding:13px 12px!important;border-bottom:1px solid #f0f0f1!important;color:var(--ui-text-2)!important;font-size:12px!important;background:#fff!important}
+html.nassus-pro-ui2 .compact-table tbody tr:hover td,html.nassus-pro-ui2 .business-table tbody tr:hover td{background:#f6f7f7!important}
+html.nassus-pro-ui2 .compact-table td strong,html.nassus-pro-ui2 .business-table td strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .compact-table td small,html.nassus-pro-ui2 .business-table td small{color:var(--ui-muted)!important}
+
+/* Search / toolbars */
+html.nassus-pro-ui2 .pro-toolbar,html.nassus-pro-ui2 .documents-toolbar,html.nassus-pro-ui2 .alerts-toolbar{padding:16px 18px!important;border-bottom:1px solid var(--ui-line)!important}
+html.nassus-pro-ui2 .pro-search,html.nassus-pro-ui2 .business-search{min-height:40px!important;border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;box-shadow:0 0 0 transparent!important}
+html.nassus-pro-ui2 .pro-search:focus-within,html.nassus-pro-ui2 .business-search:focus-within{border-color:var(--ui-blue)!important;box-shadow:0 0 0 1px var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-search input,html.nassus-pro-ui2 .business-search input{background:transparent!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-search span,html.nassus-pro-ui2 .business-search span{color:var(--ui-muted)!important}
+
+/* Forms */
+html.nassus-pro-ui2 input,html.nassus-pro-ui2 select,html.nassus-pro-ui2 textarea{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-form input,html.nassus-pro-ui2 .pro-form select,html.nassus-pro-ui2 .pro-form textarea,html.nassus-pro-ui2 .business-form-grid input,html.nassus-pro-ui2 .business-form-grid select,html.nassus-pro-ui2 .business-form-grid textarea,html.nassus-pro-ui2 .contract-form-grid input,html.nassus-pro-ui2 .contract-form-grid select,html.nassus-pro-ui2 .contract-form-grid textarea,html.nassus-pro-ui2 .audit-form input,html.nassus-pro-ui2 .audit-form select{border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:0 0 0 transparent!important}
+html.nassus-pro-ui2 .pro-form input:focus,html.nassus-pro-ui2 .pro-form select:focus,html.nassus-pro-ui2 .pro-form textarea:focus,html.nassus-pro-ui2 .business-form-grid input:focus,html.nassus-pro-ui2 .business-form-grid select:focus,html.nassus-pro-ui2 .business-form-grid textarea:focus,html.nassus-pro-ui2 .contract-form-grid input:focus,html.nassus-pro-ui2 .contract-form-grid select:focus,html.nassus-pro-ui2 .contract-form-grid textarea:focus{border-color:var(--ui-blue)!important;box-shadow:0 0 0 1px var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-form label,html.nassus-pro-ui2 .business-form-grid label,html.nassus-pro-ui2 .contract-form-grid label{color:var(--ui-text-2)!important;font-size:10px!important;font-weight:700!important}
+html.nassus-pro-ui2 .form-section{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important}
+html.nassus-pro-ui2 .form-section-title{border-bottom:1px solid var(--ui-line)!important;background:#f6f7f7!important}
+html.nassus-pro-ui2 .form-section-title strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .form-section-title small{color:var(--ui-muted)!important}
+
+/* Modals */
+html.nassus-pro-ui2 .pro-modal-backdrop,html.nassus-pro-ui2 .business-modal-backdrop{background:rgba(0,0,0,.48)!important;backdrop-filter:blur(3px)!important}
+html.nassus-pro-ui2 .pro-modal,html.nassus-pro-ui2 .business-modal,html.nassus-pro-ui2 .contract-editor,html.nassus-pro-ui2 .profile-editor,html.nassus-pro-ui2 .share-modal{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius-lg)!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:0 28px 85px rgba(0,0,0,.26)!important}
+html.nassus-pro-ui2 .pro-modal>header,html.nassus-pro-ui2 .business-modal>header{border-bottom:1px solid var(--ui-line)!important;background:#fff!important}
+html.nassus-pro-ui2 .pro-modal>header h2,html.nassus-pro-ui2 .business-modal>header h2{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-modal>header>button,html.nassus-pro-ui2 .business-modal>header>button{border:1px solid var(--ui-line)!important;background:#f6f7f7!important;color:var(--ui-text-2)!important}
+
+/* Project cards */
+html.nassus-pro-ui2 .project-grid{gap:14px!important}
+html.nassus-pro-ui2 .project-card{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:var(--ui-shadow)!important}
+html.nassus-pro-ui2 .project-card h3{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .project-card p,html.nassus-pro-ui2 .project-card small,html.nassus-pro-ui2 .project-card dt{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .project-card dd{color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .project-client>span{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .project-progress,html.nassus-pro-ui2 .mini-progress,html.nassus-pro-ui2 .pipeline-track,html.nassus-pro-ui2 .business-progress{background:#e5e5e5!important}
+html.nassus-pro-ui2 .project-progress i,html.nassus-pro-ui2 .mini-progress i,html.nassus-pro-ui2 .pipeline-track i,html.nassus-pro-ui2 .business-progress i{background:var(--ui-blue)!important}
+
+/* Status chips */
+html.nassus-pro-ui2 .lead-pill,html.nassus-pro-ui2 .project-pill,html.nassus-pro-ui2 .payment-pill,html.nassus-pro-ui2 .document-type,html.nassus-pro-ui2 .document-status,html.nassus-pro-ui2 .profile-kind{border-radius:999px!important;font-size:9px!important;font-weight:750!important;letter-spacing:.01em!important}
+html.nassus-pro-ui2 .lead-novo,html.nassus-pro-ui2 .project-planejamento,html.nassus-pro-ui2 .payment-pendente,html.nassus-pro-ui2 .status-enviado,html.nassus-pro-ui2 .status-visualizado{background:var(--ui-blue-soft)!important;color:var(--ui-blue-strong)!important}
+html.nassus-pro-ui2 .lead-fechado,html.nassus-pro-ui2 .project-finalizado,html.nassus-pro-ui2 .payment-pago,html.nassus-pro-ui2 .status-assinado,html.nassus-pro-ui2 .status-concluido{background:var(--ui-green-soft)!important;color:#087a22!important}
+html.nassus-pro-ui2 .lead-negociacao,html.nassus-pro-ui2 .project-revisao,html.nassus-pro-ui2 .payment-atrasado{background:var(--ui-amber-soft)!important;color:#996800!important}
+html.nassus-pro-ui2 .lead-perdido,html.nassus-pro-ui2 .payment-cancelado,html.nassus-pro-ui2 .status-cancelado,html.nassus-pro-ui2 .status-vencido{background:var(--ui-red-soft)!important;color:#b32d2e!important}
+
+/* Pipeline/activity */
+html.nassus-pro-ui2 .pipeline-row strong,html.nassus-pro-ui2 .pipeline-row b,html.nassus-pro-ui2 .activity-list strong,html.nassus-pro-ui2 .finance-mini-list strong{color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .pipeline-row small,html.nassus-pro-ui2 .activity-list small,html.nassus-pro-ui2 .finance-mini-list small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .activity-list>button,html.nassus-pro-ui2 .finance-mini-list>button{border-color:#f0f0f1!important;background:#fff!important}
+html.nassus-pro-ui2 .activity-list>button:hover,html.nassus-pro-ui2 .finance-mini-list>button:hover{background:#f6f7f7!important}
+
+/* Client 360 */
+html.nassus-pro-ui2 .client360-layout{gap:18px!important}
+html.nassus-pro-ui2 .client360-list{top:90px!important;height:calc(100vh - 116px)!important;padding:12px!important}
+html.nassus-pro-ui2 .client360-list-items button{border-radius:7px!important}
+html.nassus-pro-ui2 .client360-list-items button:hover,html.nassus-pro-ui2 .client360-list-items button.active{background:var(--ui-blue-soft)!important}
+html.nassus-pro-ui2 .client360-list-items button>i{border-radius:50%!important;background:#f0f0f1!important;color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .client360-list-items button.active>i{background:var(--ui-blue)!important;color:#fff!important}
+html.nassus-pro-ui2 .client360-list-items button strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .client360-list-items button small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .client360-hero{padding:24px!important;border:1px solid #0a4b78!important;border-radius:var(--ui-radius)!important;background:linear-gradient(135deg,#0a4b78,#2271b1)!important;box-shadow:var(--ui-shadow)!important}
+html.nassus-pro-ui2 .client360-note{background:#f6f7f7!important}
+html.nassus-pro-ui2 .client360-details dt,html.nassus-pro-ui2 .client360-tasks small,html.nassus-pro-ui2 .client360-finance-list small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .client360-details dd,html.nassus-pro-ui2 .client360-tasks strong,html.nassus-pro-ui2 .client360-finance-list strong{color:var(--ui-text-2)!important}
+
+/* Business modules */
+html.nassus-pro-ui2 .business-notice{border-left:4px solid var(--ui-blue)!important;border-top:1px solid #c3d9ec!important;border-right:1px solid #c3d9ec!important;border-bottom:1px solid #c3d9ec!important;border-radius:4px!important;background:#f0f6fc!important;color:#0a4b78!important}
+html.nassus-pro-ui2 .business-empty{border:1px dashed var(--ui-line-strong)!important;border-radius:var(--ui-radius)!important;background:#fff!important}
+html.nassus-pro-ui2 .business-empty>div{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .business-empty h2{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .business-empty p{color:var(--ui-muted)!important}
+
+/* Documents center */
+html.nassus-pro-ui2 .documents-center{gap:18px!important}
+html.nassus-pro-ui2 .document-tabs{padding:5px!important;border:1px solid var(--ui-line)!important;border-radius:6px!important;background:#fff!important}
+html.nassus-pro-ui2 .document-tabs button{border-radius:4px!important;color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .document-tabs button.active{border-color:var(--ui-blue)!important;background:var(--ui-blue)!important;color:#fff!important}
+html.nassus-pro-ui2 .document-kpis article{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;box-shadow:var(--ui-shadow)!important}
+html.nassus-pro-ui2 .document-kpis span,html.nassus-pro-ui2 .document-kpis small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .document-kpis strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .document-card-pro,html.nassus-pro-ui2 .document-card{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:var(--ui-shadow)!important}
+html.nassus-pro-ui2 .document-card-pro h3,html.nassus-pro-ui2 .document-card h3{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .document-card-pro>p,html.nassus-pro-ui2 .document-card>p,html.nassus-pro-ui2 .document-card-pro>small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .document-card-pro dl div,html.nassus-pro-ui2 .document-card dl div{border:1px solid #f0f0f1!important;background:#f6f7f7!important}
+html.nassus-pro-ui2 .document-card-pro dt,html.nassus-pro-ui2 .document-card dt{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .document-card-pro dd,html.nassus-pro-ui2 .document-card dd{color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .profile-cards article,html.nassus-pro-ui2 .catalog-list article,html.nassus-pro-ui2 .clause-list article,html.nassus-pro-ui2 .contract-selector,html.nassus-pro-ui2 .service-selector article,html.nassus-pro-ui2 .clause-selector label{border:1px solid var(--ui-line)!important;background:#fff!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .profile-cards h3,html.nassus-pro-ui2 .catalog-list strong,html.nassus-pro-ui2 .clause-list strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .profile-cards p,html.nassus-pro-ui2 .catalog-list p,html.nassus-pro-ui2 .clause-list p,html.nassus-pro-ui2 .service-selector small,html.nassus-pro-ui2 .clause-selector small{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .share-security{border-color:#edc967!important;background:#fff8e5!important}
+html.nassus-pro-ui2 .share-security strong{color:#7a5600!important}
+html.nassus-pro-ui2 .share-security p{color:#755d24!important}
+
+/* Alerts */
+html.nassus-pro-ui2 .alerts-filters button{border:1px solid var(--ui-line)!important;border-radius:4px!important;background:#fff!important;color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .alerts-filters button.active{border-color:var(--ui-blue)!important;background:var(--ui-blue-soft)!important;color:var(--ui-blue-strong)!important}
+html.nassus-pro-ui2 .alert-card{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;box-shadow:none!important}
+
+/* AI / audit */
+html.nassus-pro-ui2 .ai-hero{border:1px solid #0a4b78!important;border-radius:var(--ui-radius-lg)!important;background:linear-gradient(135deg,#0a4b78 0%,#2271b1 62%,#3582b9 100%)!important;color:#fff!important;box-shadow:var(--ui-shadow-lg)!important}
+html.nassus-pro-ui2 .ai-hero h2,html.nassus-pro-ui2 .ai-hero p,html.nassus-pro-ui2 .ai-hero label{color:#fff!important}
+html.nassus-pro-ui2 .audit-findings{background:#fff!important}
+html.nassus-pro-ui2 .finding-column{border-color:var(--ui-line)!important;background:#fff!important}
+html.nassus-pro-ui2 .finding-column h3{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .audit-history button{background:#fff!important;color:var(--ui-text)!important;border-color:#f0f0f1!important}
+html.nassus-pro-ui2 .audit-history button:hover{background:#f6f7f7!important}
+
+/* Notices and states */
+html.nassus-pro-ui2 .pro-notice{top:84px!important;border-left:4px solid var(--ui-green)!important;border-radius:4px!important;background:#fff!important;color:var(--ui-text-2)!important;box-shadow:0 6px 24px rgba(0,0,0,.15)!important}
+html.nassus-pro-ui2 .suite-loading{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius)!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:var(--ui-shadow)!important}
+html.nassus-pro-ui2 .suite-loading span{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .pro-empty{border-color:var(--ui-line)!important;background:#f9fafb!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-empty p{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .pro-empty-icon{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+
+/* Quick cross-module launcher */
+html.nassus-pro-ui2 .suite-dock{right:22px!important;bottom:22px!important;gap:4px!important;padding:6px!important;border:1px solid var(--ui-line)!important;border-radius:8px!important;background:rgba(255,255,255,.97)!important;box-shadow:0 10px 34px rgba(0,0,0,.14)!important;backdrop-filter:blur(14px)!important}
+html.nassus-pro-ui2 .suite-dock button{min-height:38px!important;border-radius:5px!important;color:var(--ui-text-2)!important;font-size:10px!important}
+html.nassus-pro-ui2 .suite-dock button:hover{background:#f0f0f1!important;color:var(--ui-blue)!important;transform:none!important}
+html.nassus-pro-ui2 .suite-dock i{width:24px!important;height:24px!important;border-radius:4px!important;background:var(--ui-blue)!important;color:#fff!important}
+
+/* Public auth — cleaner enterprise login */
+html.nassus-pro-ui2 .pro-auth{min-height:100vh!important;grid-template-columns:minmax(0,1.08fr) minmax(440px,.92fr)!important;background:#fff!important}
+html.nassus-pro-ui2 .pro-auth-visual{color:#fff!important;background:linear-gradient(145deg,#1d2327 0%,#23282d 52%,#0a4b78 100%)!important}
+html.nassus-pro-ui2 .pro-auth-visual::after{border-color:rgba(255,255,255,.08)!important}
+html.nassus-pro-ui2 .pro-auth-brand>span{border-radius:10px!important;box-shadow:0 10px 28px rgba(0,0,0,.28)!important}
+html.nassus-pro-ui2 .pro-auth-copy>span{border-radius:4px!important;background:rgba(255,255,255,.08)!important}
+html.nassus-pro-ui2 .pro-auth-copy h1{font-size:clamp(42px,5vw,68px)!important;letter-spacing:-.055em!important}
+html.nassus-pro-ui2 .pro-auth-copy p{color:#dcdcde!important}
+html.nassus-pro-ui2 .pro-auth-features div{border-radius:8px!important;background:rgba(255,255,255,.06)!important}
+html.nassus-pro-ui2 .pro-auth-features small{color:#b8bdc2!important}
+html.nassus-pro-ui2 .pro-auth-form-side{background:#f0f0f1!important}
+html.nassus-pro-ui2 .pro-auth-card{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius-lg)!important;background:#fff!important;box-shadow:0 20px 55px rgba(0,0,0,.12)!important}
+html.nassus-pro-ui2 .pro-auth-card>span{color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-auth-card h2{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-auth-card>p{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .pro-auth-card label{color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .pro-auth-card input{border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-auth-card input:focus{border-color:var(--ui-blue)!important;box-shadow:0 0 0 1px var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-auth-card form>button{border:1px solid var(--ui-blue)!important;border-radius:4px!important;background:var(--ui-blue)!important;box-shadow:none!important}
+html.nassus-pro-ui2 .pro-auth-card form>button:hover{background:var(--ui-blue-strong)!important;border-color:var(--ui-blue-strong)!important}
+html.nassus-pro-ui2 .pro-auth-security{color:var(--ui-muted)!important}
+
+/* Public signing — client-facing, premium paper experience */
+html.nassus-pro-ui2 .sign-shell{min-height:100vh!important;padding:30px!important;background:linear-gradient(180deg,#f0f0f1,#e7e8ea)!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .sign-unlock-card{border:1px solid var(--ui-line)!important;border-radius:var(--ui-radius-lg)!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:0 24px 70px rgba(0,0,0,.14)!important}
+html.nassus-pro-ui2 .sign-brand strong{color:var(--ui-text)!important}
+html.nassus-pro-ui2 .sign-brand small,html.nassus-pro-ui2 .sign-privacy{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .sign-lock-icon{border-color:#c3d9ec!important;background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .sign-eyebrow{color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .sign-unlock-card>p{color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .sign-unlock-form label,html.nassus-pro-ui2 .sign-fields label{color:var(--ui-text-2)!important}
+html.nassus-pro-ui2 .sign-unlock-form input,html.nassus-pro-ui2 .sign-fields input{border:1px solid #8c8f94!important;border-radius:4px!important;background:#fff!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .sign-unlock-form input:focus,html.nassus-pro-ui2 .sign-fields input:focus{border-color:var(--ui-blue)!important;box-shadow:0 0 0 1px var(--ui-blue)!important}
+html.nassus-pro-ui2 .sign-unlock-form button,html.nassus-pro-ui2 .sign-submit,html.nassus-pro-ui2 .sign-complete-card button{border:1px solid var(--ui-blue)!important;border-radius:4px!important;background:var(--ui-blue)!important;box-shadow:none!important}
+html.nassus-pro-ui2 .sign-topbar{border-bottom:1px solid var(--ui-line)!important;background:rgba(29,35,39,.97)!important;color:#fff!important}
+html.nassus-pro-ui2 .sign-topbar .sign-brand strong{color:#fff!important}
+html.nassus-pro-ui2 .sign-paper{border:1px solid #c3c4c7!important;border-radius:2px!important;background:#fff!important;color:var(--ui-text)!important;box-shadow:0 20px 65px rgba(0,0,0,.13)!important}
+html.nassus-pro-ui2 .sign-paper-head{border-bottom-color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .sign-paper-head span,html.nassus-pro-ui2 .sign-parties span,html.nassus-pro-ui2 .sign-project span{color:var(--ui-blue)!important}
+
+/* Boot screens */
+html.nassus-pro-ui2 .pro-boot{background:#f0f0f1!important;color:var(--ui-text)!important}
+html.nassus-pro-ui2 .pro-boot>span{color:var(--ui-blue)!important}
+html.nassus-pro-ui2 .pro-boot-line{background:#dcdcde!important}
+html.nassus-pro-ui2 .pro-boot-line i{background:var(--ui-blue)!important}
+
+/* Mobile */
+html.nassus-pro-ui2 .pro-mobile-nav,html.nassus-pro-ui2 .suite-mobile-nav{border:1px solid var(--ui-line)!important;border-radius:10px!important;background:rgba(255,255,255,.97)!important;box-shadow:0 10px 34px rgba(0,0,0,.16)!important}
+html.nassus-pro-ui2 .pro-mobile-nav button,html.nassus-pro-ui2 .suite-mobile-nav button{border-radius:6px!important;color:var(--ui-muted)!important}
+html.nassus-pro-ui2 .pro-mobile-nav button.active,html.nassus-pro-ui2 .suite-mobile-nav button.active{background:var(--ui-blue-soft)!important;color:var(--ui-blue)!important}
+
+@media(max-width:1100px){
+  html.nassus-pro-ui2 .pro-metrics,html.nassus-pro-ui2 .business-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html.nassus-pro-ui2 .pro-dashboard-grid{grid-template-columns:1fr!important}
+  html.nassus-pro-ui2 .document-cards,html.nassus-pro-ui2 .documents-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+  html.nassus-pro-ui2 .pro-sidebar,html.nassus-pro-ui2 .suite-sidebar{display:none!important}
+  html.nassus-pro-ui2 .pro-main,html.nassus-pro-ui2 .suite-main{margin-left:0!important}
+  html.nassus-pro-ui2 .pro-topbar,html.nassus-pro-ui2 .suite-topbar{padding:12px 18px!important}
+  html.nassus-pro-ui2 .pro-content{padding:20px 14px 95px!important}
+  html.nassus-pro-ui2 .suite-content{width:calc(100% - 28px)!important;padding-bottom:100px!important}
+  html.nassus-pro-ui2 .client360-layout{grid-template-columns:1fr!important}
+  html.nassus-pro-ui2 .client360-list{position:relative!important;top:auto!important;height:auto!important}
+  html.nassus-pro-ui2 .pro-auth{grid-template-columns:1fr!important}
+}
+@media(max-width:680px){
+  html.nassus-pro-ui2 .pro-metrics,html.nassus-pro-ui2 .business-metrics,html.nassus-pro-ui2 .document-kpis{grid-template-columns:1fr!important}
+  html.nassus-pro-ui2 .document-cards,html.nassus-pro-ui2 .documents-grid,html.nassus-pro-ui2 .project-grid,html.nassus-pro-ui2 .profile-cards,html.nassus-pro-ui2 .document-catalog-grid{grid-template-columns:1fr!important}
+  html.nassus-pro-ui2 .pro-topbar h1,html.nassus-pro-ui2 .suite-topbar h1{font-size:20px!important}
+  html.nassus-pro-ui2 .suite-topbar p{display:none!important}
+  html.nassus-pro-ui2 .suite-dock{left:10px!important;right:10px!important;bottom:76px!important;overflow-x:auto!important}
+  html.nassus-pro-ui2 .sign-shell{padding:14px!important}
+  html.nassus-pro-ui2 .sign-paper{padding:22px 16px!important}
+}
