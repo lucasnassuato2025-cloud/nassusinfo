@@ -42,7 +42,7 @@ async function deleteDocumentByNumber(number: string) {
   ];
 
   for (const tableName of relatedTables) {
-    const result = await (neonClient.from(tableName) as any).delete().eq("document_id", documentId);
+    const result = await (neonClient as any).from(tableName).delete().eq("document_id", documentId);
     if (result.error) throw result.error;
   }
 
