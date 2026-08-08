@@ -47,12 +47,32 @@ function currency(valueNumber: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valueNumber || 0);
 }
 
+function documentDigits(valueText: string): string {
+  return valueText.replace(/\D/g, "").slice(0, 14);
+}
+
+function formatDocument(valueText: string): string {
+  const digits = documentDigits(valueText);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
 function Paragraphs({ text }: { text: string }) {
   return <>{text.split(/\n+/).filter(Boolean).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</>;
 }
 
 export default function SigningClient({ token }: { token: string }) {
   const [code, setCode] = useState("");
+  const [signerDocument, setSignerDocument] = useState("");
   const [data, setData] = useState<OpenResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
@@ -122,8 +142,20 @@ export default function SigningClient({ token }: { token: string }) {
     hasDrawingRef.current = false;
   }
 
+  function identityDocument(): string | null {
+    const normalized = documentDigits(signerDocument);
+    if (![11, 14].includes(normalized.length)) {
+      setNotice("Informe o CPF ou CNPJ completo do contratante.");
+      return null;
+    }
+    return normalized;
+  }
+
   async function unlock(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedDocument = identityDocument();
+    if (!normalizedDocument) return;
+
     setLoading(true);
     setNotice("");
     try {
@@ -134,6 +166,7 @@ export default function SigningClient({ token }: { token: string }) {
       const result = await callPublicSigningRpc<OpenResult>("public_open_signing_document", {
         p_token_hash: tokenHash,
         p_access_code_hash: codeHash,
+        p_signer_document: normalizedDocument,
       });
       setData(result);
       const client = result.document.client;
@@ -150,6 +183,8 @@ export default function SigningClient({ token }: { token: string }) {
   async function submitSignature(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
+    const normalizedDocument = identityDocument();
+    if (!normalizedDocument) return;
     if (method === "drawn" && !hasDrawingRef.current) {
       setNotice("Desenhe sua assinatura no campo indicado.");
       return;
@@ -168,6 +203,7 @@ export default function SigningClient({ token }: { token: string }) {
       const result = await callPublicSigningRpc<SignResult>("public_submit_document_signature", {
         p_token_hash: tokenHash,
         p_access_code_hash: codeHash,
+        p_signer_document: normalizedDocument,
         p_signer_name: signerName,
         p_signer_email: signerEmail,
         p_signer_phone: signerPhone,
@@ -177,6 +213,8 @@ export default function SigningClient({ token }: { token: string }) {
         p_document_hash: data.document_hash,
       });
       setSigned(result);
+      setSignerDocument("");
+      setCode("");
       setNotice("Documento assinado com sucesso. Guarde esta página como comprovante.");
     } catch (reason) {
       setNotice(reason instanceof Error ? reason.message : "Não foi possível registrar a assinatura.");
@@ -193,26 +231,38 @@ export default function SigningClient({ token }: { token: string }) {
           <div className="sign-lock-icon">✓</div>
           <span className="sign-eyebrow">LINK PRIVADO</span>
           <h1>Acesse o documento para leitura e assinatura</h1>
-          <p>Informe somente o código de acesso enviado pela Nassusinfo.</p>
-          {notice && <div className="sign-notice sign-error">{notice}</div>}
+          <p>Confirme sua identidade com o CPF/CNPJ do contratante e o código enviado separadamente pela Nassusinfo.</p>
+          {notice && <div className="sign-notice sign-error" role="alert">{notice}</div>}
           <form onSubmit={unlock} className="sign-unlock-form">
+            <label>
+              CPF ou CNPJ do contratante
+              <input
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={18}
+                required
+                value={signerDocument}
+                onChange={(event) => setSignerDocument(formatDocument(event.target.value))}
+                placeholder="000.000.000-00"
+              />
+            </label>
             <label>
               Código de acesso
               <input
                 inputMode="numeric"
+                autoComplete="one-time-code"
                 maxLength={6}
                 required
-                autoFocus
                 value={code}
                 onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="000000"
               />
             </label>
-            <button type="submit" disabled={loading || code.length !== 6}>
-              {loading ? "Verificando..." : "Abrir documento"}
+            <button type="submit" disabled={loading || code.length !== 6 || ![11, 14].includes(documentDigits(signerDocument).length)}>
+              {loading ? "Verificando identidade..." : "Abrir documento"}
             </button>
           </form>
-          <small className="sign-privacy">O link privado e o código de acesso restringem a abertura do documento e compõem a trilha de auditoria.</small>
+          <small className="sign-privacy">O CPF/CNPJ é usado somente para confirmar a identidade vinculada ao contrato e é comparado por hash. Tentativas de acesso são protegidas e auditadas sem armazenar o IP em texto puro.</small>
         </section>
       </main>
     );
@@ -230,7 +280,7 @@ export default function SigningClient({ token }: { token: string }) {
         <div><span>Documento</span><strong>{snapshot.document.number}</strong></div>
       </header>
 
-      {notice && <div className={`sign-notice ${signed ? "sign-success" : "sign-error"}`}>{notice}</div>}
+      {notice && <div className={`sign-notice ${signed ? "sign-success" : "sign-error"}`} role="status">{notice}</div>}
 
       <article className="sign-paper">
         <header className="sign-paper-head">
@@ -307,7 +357,7 @@ export default function SigningClient({ token }: { token: string }) {
             <span>Declaro que li integralmente o documento, compreendi suas condições, reconheço os dados apresentados e concordo em assiná-lo eletronicamente.</span>
           </label>
 
-          <div className="sign-legal-note"><strong>Importante</strong><p>Esta é uma assinatura eletrônica realizada dentro do Nassus CRM, com link privado, código de acesso, versão, hash e registros técnicos. Ela não é um certificado ICP-Brasil nem uma assinatura Gov.br.</p></div>
+          <div className="sign-legal-note"><strong>Privacidade e validade técnica</strong><p>Esta assinatura eletrônica registra versão, hash, consentimento e eventos técnicos de segurança. O CPF/CNPJ é utilizado para validação de identidade. O endereço IP não é armazenado em texto puro pelo gateway do Nassus CRM. Esta assinatura não é um certificado ICP-Brasil nem uma assinatura Gov.br.</p></div>
           <button type="submit" className="sign-submit" disabled={loading}>{loading ? "Registrando assinatura..." : "Assinar documento"}</button>
         </form>
       ) : (
