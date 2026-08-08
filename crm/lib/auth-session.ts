@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientIssue } from "@/lib/client-diagnostics";
 import { neonClient } from "@/lib/neon";
 
 export type AuthSessionUser = {
@@ -38,7 +39,10 @@ export async function waitForAuthenticatedUser(expectedEmail?: string, attempts 
     }
   }
 
-  if (lastError) throw lastError;
+  if (lastError) {
+    reportClientIssue("auth_session_unavailable", lastError);
+    throw lastError;
+  }
   return null;
 }
 
@@ -55,10 +59,15 @@ export async function claimWorkspaceWithRetry(attempts = 5): Promise<unknown> {
     lastError = result.error;
     const message = String(result.error?.message || "");
     const isFreshSessionRace = /sess[aã]o inv[aá]lida|jwt|token|auth/i.test(message);
-    if (!isFreshSessionRace) throw result.error;
+    if (!isFreshSessionRace) {
+      reportClientIssue("workspace_claim_failed", result.error);
+      throw result.error;
+    }
 
     await neonClient.auth.getSession();
   }
 
-  throw lastError || new Error("Não foi possível validar a sessão do workspace.");
+  const finalError = lastError || new Error("Não foi possível validar a sessão do workspace.");
+  reportClientIssue("workspace_claim_failed", finalError);
+  throw finalError;
 }
