@@ -19,6 +19,23 @@ test("aviso de privacidade descreve retenção e assinatura", async ({ page }) =
   await expect(page.getByText("Retenção e exclusão")).toBeVisible();
 });
 
+test("portal de assinatura v2 oferece documento e evidência", async ({ page }) => {
+  await page.goto("/assinar/token-de-teste-sem-acesso");
+  await expect(page.getByText("ASSINATURA ELETRÔNICA V2")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ler e assinar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Consultar evidência" })).toBeVisible();
+  await expect(page.getByLabel("CPF ou CNPJ do contratante")).toBeVisible();
+});
+
+test("healthcheck confirma aplicação e banco", async ({ request }) => {
+  const response = await request.get("/api/health");
+  expect(response.status()).toBe(200);
+  const data = await response.json();
+  expect(data.ok).toBe(true);
+  expect(data.database).toBe("ok");
+  expect(data.service).toBe("nassus-crm");
+});
+
 test("headers críticos de segurança estão ativos", async ({ request }) => {
   const response = await request.get("/sign-in");
   expect(response.status()).toBe(200);
