@@ -1,10 +1,21 @@
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { neonClient } from "@/lib/neon";
 
 type AuthResult={error?:{message?:string}|null};
-type PasswordAuthClient={requestPasswordReset:(input:{email:string;redirectTo:string})=>Promise<AuthResult>;resetPassword:(input:{token:string;newPassword:string})=>Promise<AuthResult>};
+type ResetCapableAuth=typeof neonClient.auth & {resetPassword?:(input:{token:string;newPassword:string})=>Promise<AuthResult>};
 
-function authClient():PasswordAuthClient{return neonClient.auth as unknown as PasswordAuthClient;}
+export async function requestPasswordReset(email:string,redirectTo:string){
+  try{
+    const result=await neonClient.auth.requestPasswordReset({email:email.trim().toLocaleLowerCase("pt-BR"),redirectTo});
+    if(result.error)throw result.error;
+  }catch(reason){throw new Error(friendlyAuthError(reason,"password-reset"));}
+}
 
-export async function requestPasswordReset(email:string,redirectTo:string){const auth=authClient();if(typeof auth.requestPasswordReset!=="function")throw new Error("A recuperação de senha ainda não está disponível neste ambiente.");const result=await auth.requestPasswordReset({email:email.trim().toLocaleLowerCase("pt-BR"),redirectTo});if(result.error)throw new Error(result.error.message||"Não foi possível enviar o link de redefinição.");}
-
-export async function resetPassword(token:string,newPassword:string){const auth=authClient();if(typeof auth.resetPassword!=="function")throw new Error("A redefinição de senha ainda não está disponível neste ambiente.");const result=await auth.resetPassword({token,newPassword});if(result.error)throw new Error(result.error.message||"Não foi possível redefinir a senha.");}
+export async function resetPassword(token:string,newPassword:string){
+  const auth=neonClient.auth as ResetCapableAuth;
+  if(typeof auth.resetPassword!=="function")throw new Error("A redefinição de senha não está disponível nesta versão do serviço de autenticação.");
+  try{
+    const result=await auth.resetPassword({token,newPassword});
+    if(result.error)throw result.error;
+  }catch(reason){throw new Error(friendlyAuthError(reason,"password-reset"));}
+}
