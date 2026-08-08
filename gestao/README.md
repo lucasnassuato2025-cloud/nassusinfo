@@ -74,6 +74,7 @@ database/004-trial-write-guard.sql
 database/005-role-permissions.sql
 database/006-team-trial-guard.sql
 database/007-tenant-reference-guard.sql
+database/008-billing-state.sql
 ```
 
 As migrações 002+ documentam evoluções já aplicadas nos ambientes Neon.
@@ -87,7 +88,9 @@ NEXT_PUBLIC_CAKTO_ESSENTIAL_CHECKOUT_URL
 NEXT_PUBLIC_CAKTO_PROFESSIONAL_CHECKOUT_URL
 ```
 
-O banco possui `subscriptions` e `webhook_events`. O webhook que altera plano/status deve ser implementado somente quando o formato oficial de evento e a validação de assinatura da conta Cakto estiverem disponíveis. Não deve ser criado um webhook baseado em payload presumido.
+O banco possui `subscriptions` e `webhook_events`, além de uma função administrativa `apply_billing_state` que só pode ser executada por backend confiável. Ela não concede plano Profissional enquanto o estado estiver pendente; somente um evento validado como ativo libera o plano e os limites correspondentes.
+
+O webhook deve ser implementado quando o formato oficial do evento e a validação de assinatura da conta Cakto estiverem disponíveis. Não deve ser criado um webhook baseado em payload presumido.
 
 ## Desenvolvimento
 
