@@ -2,69 +2,82 @@
 
 SaaS multiempresa para prestadores de serviços, desenvolvido em Next.js e conectado ao Neon Auth + Data API.
 
-## MVP funcional
-
-Já estão implementados:
+## Pacote pré-Cakto implementado
 
 - login, cadastro e recuperação de senha;
-- onboarding e criação de empresa;
-- usuário participando de várias empresas com seletor de workspace;
+- onboarding com trial de 7 dias;
+- múltiplas empresas por usuário e troca de workspace;
 - Dashboard com dados reais;
-- Clientes: cadastro, busca, status e exclusão;
-- Serviços: catálogo, preço, duração e status;
-- Agenda: cliente + serviço + profissional, confirmação, conclusão e cancelamento;
-- Financeiro: receitas, despesas, vencimentos e baixa de pagamento;
-- Orçamentos: múltiplos itens, numeração, cliente, desconto, validade e status;
-- Equipe: inclusão por e-mail, perfis e desativação de acesso;
-- Relatórios operacionais e financeiros;
-- Configurações da empresa;
-- central de Assinatura com planos Essencial e Profissional;
+- Clientes com busca, WhatsApp e perfil 360°;
+- histórico do cliente com agenda, orçamentos e financeiro permitido pelo perfil;
+- Serviços com preço, duração e status;
+- Agenda por cliente, serviço e profissional;
+- bloqueio de conflito de horário no PostgreSQL;
+- confirmação de atendimento por WhatsApp sem API paga;
+- página pública de agendamento sem login;
+- horário comercial configurável e validado no banco;
+- Financeiro com receitas, despesas, vencimentos e baixa;
+- Orçamentos com múltiplos itens, desconto, validade e fluxo de aprovação;
+- impressão e salvamento de orçamento em PDF pelo navegador;
+- Equipe com Proprietário, Administrador, Equipe, Recepção, Profissional e Financeiro;
+- permissões por módulo aplicadas por RLS, não apenas no menu;
+- Relatórios com período e exportação CSV;
+- Configurações da empresa, endereço e agendamento público;
+- central de Assinatura preparada para os checkouts Cakto;
+- Nassus Admin com empresas, trials, planos, usuários e MRR estimado;
 - PWA instalável, manifesto, ícone, service worker e fallback offline seguro;
-- endpoint `/api/health` para monitoramento;
+- endpoint `/api/health`;
 - CI no GitHub com typecheck + build do Next.js.
 
 ## Planos
 
 ### Essencial — R$ 39,90/mês
-
 - até 2 usuários;
-- até 90 clientes;
-- clientes, agenda, serviços, financeiro e orçamentos;
-- PWA para computador e celular.
+- até 90 clientes.
 
 ### Profissional — R$ 139,90/mês
-
 - até 10 usuários;
-- clientes ilimitados;
-- recursos do Essencial;
-- maior capacidade operacional e base para automações avançadas.
+- clientes ilimitados.
 
-Os limites são aplicados no PostgreSQL. Alterar a interface do navegador não permite ultrapassá-los.
+Os limites são fiscalizados no PostgreSQL. O Essencial foi testado com 90 clientes e bloqueou o 91º cadastro.
 
-## Segurança
+## Perfis e permissões
 
-O projeto usa RLS e funções do PostgreSQL para isolar empresas. Cada registro operacional possui vínculo com um `business_id` e só pode ser acessado por membros daquela empresa.
+- Proprietário / Administrador: gestão completa;
+- Financeiro: Financeiro e Relatórios;
+- Recepção: Clientes, Agenda, Serviços e Orçamentos;
+- Profissional: Clientes, Agenda e Serviços;
+- Equipe: operação geral e Orçamentos.
 
-Regras adicionais:
+As políticas RLS usam funções específicas para operação, comercial e financeiro. Manipular o navegador ou a Data API não concede acesso a módulos proibidos.
 
-- proprietário e administrador possuem recursos gerenciais;
-- equipe operacional não lê financeiro nem assinatura;
-- usuários autenticados não podem alterar `plan`, `status`, limites ou validade do trial diretamente;
-- trial de 7 dias é fiscalizado no banco;
-- depois do trial, os dados permanecem legíveis, mas novas escritas ficam bloqueadas até a assinatura ficar ativa;
-- referências cruzadas entre empresas são bloqueadas no banco (cliente, serviço e profissional precisam pertencer ao mesmo tenant);
-- segredos, API keys e `DATABASE_URL` não devem ser enviados ao navegador nem versionados.
+## Agendamento público
+
+A empresa pode ativar uma página como:
+
+```text
+/agendar/<slug-da-empresa>
+```
+
+O endpoint público expõe somente dados necessários ao agendamento. O banco valida empresa ativa/trial válido, serviço, profissional, limite de clientes, conflito de horário e horário de funcionamento.
+
+## Segurança e cobrança
+
+- isolamento por `business_id`;
+- referências cruzadas entre tenants são recusadas;
+- trial vencido mantém leitura dos dados e bloqueia novas escritas;
+- plano, status e limites não podem ser alterados pelo cliente;
+- `apply_billing_state` é reservada a backend confiável;
+- billing pendente não promove plano; somente estado ativo validado pode liberar o plano;
+- `platform_admins` controla o Nassus Admin fora das permissões das empresas;
+- segredos e `DATABASE_URL` não são enviados ao navegador nem versionados.
 
 ## Banco e migrações
 
-Projeto Neon dedicado: `nassus-gestao`.
-
-Ambientes:
+Projeto Neon: `nassus-gestao`.
 
 - `main`: produção;
 - `development`: testes e validação.
-
-Arquivos:
 
 ```text
 database/schema.sql
@@ -75,22 +88,21 @@ database/005-role-permissions.sql
 database/006-team-trial-guard.sql
 database/007-tenant-reference-guard.sql
 database/008-billing-state.sql
+database/009-public-booking-admin.sql
+database/010-access-profiles.sql
+database/011-public-booking-hours.sql
 ```
-
-As migrações 002+ documentam evoluções já aplicadas nos ambientes Neon.
 
 ## Cakto
 
-A aplicação já aceita links públicos de checkout através de:
+O front aceita os links oficiais através de:
 
 ```text
 NEXT_PUBLIC_CAKTO_ESSENTIAL_CHECKOUT_URL
 NEXT_PUBLIC_CAKTO_PROFESSIONAL_CHECKOUT_URL
 ```
 
-O banco possui `subscriptions` e `webhook_events`, além de uma função administrativa `apply_billing_state` que só pode ser executada por backend confiável. Ela não concede plano Profissional enquanto o estado estiver pendente; somente um evento validado como ativo libera o plano e os limites correspondentes.
-
-O webhook deve ser implementado quando o formato oficial do evento e a validação de assinatura da conta Cakto estiverem disponíveis. Não deve ser criado um webhook baseado em payload presumido.
+O webhook final deve ser implementado somente com o payload e a validação de assinatura oficiais da conta Cakto.
 
 ## Desenvolvimento
 
@@ -104,11 +116,16 @@ npm run dev
 
 ## Publicação
 
-O repositório contém aplicações independentes. Para o Nassus Gestão, a hospedagem deve usar:
-
 ```text
 Root Directory: gestao
-Domínio: app.nassusinfo.com.br
+Domínio planejado: app.nassusinfo.com.br
 ```
 
-Isso mantém `nassusinfo.com.br` e `crm.nassusinfo.com.br` separados do novo SaaS.
+O site `nassusinfo.com.br` e o CRM `crm.nassusinfo.com.br` permanecem aplicações separadas.
+
+## Bloqueios externos restantes
+
+- criar/conectar o projeto `nassus-gestao` na hospedagem e associar `app.nassusinfo.com.br`;
+- inserir os dois links reais de checkout Cakto;
+- implementar o webhook após obter o contrato oficial dos eventos da Cakto;
+- cadastrar a primeira conta real do Gestão antes de conceder o papel de administrador da plataforma. Nenhuma credencial administrativa artificial é criada pelo código.
