@@ -1,1 +1,1 @@
-export { openReceiptPrint } from "./receipt-print-final";
+export { openReceiptPrint } from "./comprovante-print";
