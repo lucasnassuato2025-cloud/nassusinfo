@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const APP_VERSION = process.env.npm_package_version || "1.3.0";
+
 function databaseUrl(): string {
   return process.env.CRM_DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || "";
 }
@@ -23,7 +25,7 @@ export async function GET() {
       service: "nassus-crm",
       database: "not_configured",
       environment: "ci-or-local",
-      version: process.env.npm_package_version || "1.2.0",
+      version: APP_VERSION,
       latencyMs: Date.now() - started,
       timestamp: new Date().toISOString(),
     }, { headers: headers() });
@@ -38,12 +40,12 @@ export async function GET() {
       ok: true,
       service: "nassus-crm",
       database: "ok",
-      version: process.env.npm_package_version || "1.2.0",
+      version: APP_VERSION,
       commit: commit || "manual-deploy",
       latencyMs: Date.now() - started,
       timestamp: new Date().toISOString(),
     }, { headers: headers() });
   } catch {
-    return NextResponse.json({ ok: false, service: "nassus-crm", database: "unavailable", timestamp: new Date().toISOString() }, { status: 503, headers: headers() });
+    return NextResponse.json({ ok: false, service: "nassus-crm", database: "unavailable", version: APP_VERSION, timestamp: new Date().toISOString() }, { status: 503, headers: headers() });
   }
 }
