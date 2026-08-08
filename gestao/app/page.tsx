@@ -1,91 +1,50 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AppShell from "@/components/app-shell";
 import { neonClient } from "@/lib/neon";
-import { getCurrentUser, type SessionUser } from "@/lib/session";
+import { formatDateTime, formatMoney, friendlyWorkspaceError, requireWorkspace, type Workspace } from "@/lib/workspace";
 
-type Business = { id:string; name:string; plan:"essential"|"professional"; client_limit:number|null; user_limit:number; status:string };
-type Client = { id:string; name:string; phone:string|null; email:string|null; status:string; created_at:string };
-type Appointment = { id:string; starts_at:string; status:string };
-type Finance = { id:string; type:"income"|"expense"; amount:number|string; paid_at:string|null };
-type Row = Record<string, unknown>;
+type Client={id:string;name:string;phone:string|null;email:string|null;status:string;created_at:string};
+type Appointment={id:string;client_id:string|null;starts_at:string;status:string};
+type Finance={type:"income"|"expense";amount:number|string;paid_at:string|null};
+type Quote={status:string;total:number|string};
 
 export default function DashboardPage(){
-  const [user,setUser]=useState<SessionUser|null>(null);
-  const [business,setBusiness]=useState<Business|null>(null);
+  const [workspace,setWorkspace]=useState<Workspace|null>(null);
   const [clients,setClients]=useState<Client[]>([]);
   const [appointments,setAppointments]=useState<Appointment[]>([]);
   const [finance,setFinance]=useState<Finance[]>([]);
+  const [quotes,setQuotes]=useState<Quote[]>([]);
+  const [memberCount,setMemberCount]=useState(1);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
 
-  async function load(){
-    try{
-      const current=await getCurrentUser();
-      if(!current?.email){window.location.replace("/sign-in");return;}
-      const bq=await neonClient.from("businesses").select("id,name,plan,client_limit,user_limit,status").limit(1);
-      if(bq.error) throw bq.error;
-      const businesses=Array.isArray(bq.data)?bq.data as Row[]:[];
-      if(!businesses.length){window.location.replace("/onboarding");return;}
-      const b=businesses[0] as unknown as Business;
-      const [cq,aq,fq]=await Promise.all([
-        neonClient.from("clients").select("id,name,phone,email,status,created_at").eq("business_id",b.id).order("created_at",{ascending:false}),
-        neonClient.from("appointments").select("id,starts_at,status").eq("business_id",b.id).order("starts_at",{ascending:true}).limit(50),
-        neonClient.from("financial_entries").select("id,type,amount,paid_at").eq("business_id",b.id).limit(500),
-      ]);
-      if(cq.error) throw cq.error;
-      setUser(current);setBusiness(b);
-      setClients((Array.isArray(cq.data)?cq.data:[]) as Client[]);
-      if(!aq.error) setAppointments((Array.isArray(aq.data)?aq.data:[]) as Appointment[]);
-      if(!fq.error) setFinance((Array.isArray(fq.data)?fq.data:[]) as Finance[]);
-    }catch(reason){setError(reason instanceof Error?reason.message:"Não foi possível carregar o sistema.");}
-    finally{setLoading(false);}
-  }
+  useEffect(()=>{let active=true;async function load(){try{const current=await requireWorkspace();if(!current||!active)return;const now=new Date().toISOString();const [cq,aq,fq,qq,mq]=await Promise.all([
+    neonClient.from("clients").select("id,name,phone,email,status,created_at").eq("business_id",current.business.id).order("created_at",{ascending:false}),
+    neonClient.from("appointments").select("id,client_id,starts_at,status").eq("business_id",current.business.id).gte("starts_at",now).order("starts_at",{ascending:true}).limit(20),
+    neonClient.from("financial_entries").select("type,amount,paid_at").eq("business_id",current.business.id).limit(1000),
+    neonClient.from("quotes").select("status,total").eq("business_id",current.business.id).limit(500),
+    neonClient.from("business_members").select("id").eq("business_id",current.business.id).eq("active",true),
+  ]);if(cq.error)throw cq.error;setWorkspace(current);setClients((Array.isArray(cq.data)?cq.data:[]) as Client[]);setAppointments((Array.isArray(aq.data)?aq.data:[]) as Appointment[]);setFinance((Array.isArray(fq.data)?fq.data:[]) as Finance[]);setQuotes((Array.isArray(qq.data)?qq.data:[]) as Quote[]);setMemberCount(Array.isArray(mq.data)?mq.data.length:1);}catch(reason){setError(friendlyWorkspaceError(reason));}finally{if(active)setLoading(false);}}void load();return()=>{active=false};},[]);
 
-  useEffect(()=>{void load();},[]);
+  const clientMap=useMemo(()=>new Map(clients.map(client=>[client.id,client.name])),[clients]);
+  const metrics=useMemo(()=>{let revenue=0,expenses=0;for(const entry of finance){if(!entry.paid_at)continue;if(entry.type==="income")revenue+=Number(entry.amount||0);else expenses+=Number(entry.amount||0);}const approved=quotes.filter(q=>["approved","converted"].includes(q.status));return{revenue,expenses,result:revenue-expenses,approved:approved.length,approvedValue:approved.reduce((sum,q)=>sum+Number(q.total||0),0)};},[finance,quotes]);
+  const pendingAppointments=appointments.filter(a=>["scheduled","confirmed"].includes(a.status));
 
-  const revenue=useMemo(()=>finance.filter(x=>x.type==="income"&&x.paid_at).reduce((s,x)=>s+Number(x.amount||0),0),[finance]);
-  const expenses=useMemo(()=>finance.filter(x=>x.type==="expense"&&x.paid_at).reduce((s,x)=>s+Number(x.amount||0),0),[finance]);
-  const scheduled=appointments.filter(x=>x.status==="scheduled"||x.status==="confirmed").length;
+  if(loading)return <main className="loading"><div className="brand-mark">N</div><h1>Nassus Gestão</h1><p>Validando sua sessão e carregando a empresa...</p></main>;
+  if(!workspace)return <main className="loading"><div className="brand-mark">N</div><h1>Não foi possível abrir</h1><p>{error}</p><button className="primary" onClick={()=>window.location.reload()}>Tentar novamente</button></main>;
 
-  async function addClient(){
-    if(!business)return;
-    const name=window.prompt("Nome do cliente:")?.trim(); if(!name)return;
-    const phone=window.prompt("Telefone (opcional):")?.trim()||null;
-    const email=window.prompt("E-mail (opcional):")?.trim()||null;
-    const result=await neonClient.from("clients").insert({business_id:business.id,name,phone,email,status:"active"}).select("id,name,phone,email,status,created_at").single();
-    if(result.error){
-      const msg=String(result.error.message||"");
-      alert(msg.includes("CLIENT_LIMIT_REACHED")?"Você atingiu o limite de 90 clientes do Essencial. Faça upgrade para o Profissional.":msg);
-      return;
-    }
-    if(result.data)setClients((prev)=>[result.data as Client,...prev]);
-  }
+  const firstName=(workspace.user.name||workspace.user.email||"").split(" ")[0].split("@")[0];
+  const remaining=workspace.business.client_limit==null?null:Math.max(0,workspace.business.client_limit-clients.length);
 
-  async function signOut(){await neonClient.auth.signOut();window.location.replace("/sign-in");}
-
-  if(loading)return <main className="loading"><div className="brand-mark">N</div><h1>Nassus Gestão</h1><p>Validando sua sessão e empresa...</p></main>;
-  if(error)return <main className="loading"><div className="brand-mark">N</div><h1>Não foi possível abrir</h1><p>{error}</p><button className="primary" onClick={()=>window.location.reload()}>Tentar novamente</button></main>;
-  if(!user||!business)return null;
-
-  const usage=business.client_limit?Math.min(100,(clients.length/business.client_limit)*100):100;
-  const money=(v:number)=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-  return <div className="shell">
-    <aside className="sidebar">
-      <div className="side-brand"><div className="brand-mark">N</div><div><strong>Nassus Gestão</strong><small>BUSINESS OS</small></div></div>
-      <div className="business-chip"><span>Empresa atual</span><strong>{business.name}</strong></div>
-      <nav className="nav"><a className="active" href="#inicio"><span>▣ Dashboard</span></a><a href="#clientes"><span>👥 Clientes</span></a><a href="#agenda"><span>▦ Agenda</span></a><a href="#servicos"><span>🛠 Serviços</span></a><a href="#financeiro"><span>R$ Financeiro</span></a><a href="#orcamentos"><span>▤ Orçamentos</span></a><a href="#equipe"><span>◉ Equipe</span></a><a href="#config"><span>⚙ Configurações</span></a></nav>
-      <div className="plan-box"><span>{business.plan==="essential"?"Plano Essencial":"Plano Profissional"}</span><strong>{business.client_limit?`${clients.length} / ${business.client_limit} clientes`:"Clientes ilimitados"}</strong><div className="meter"><i style={{width:`${usage}%`}}/></div><small>{business.client_limit?`${Math.max(0,business.client_limit-clients.length)} cadastros restantes.`:"Sem limite de clientes."}</small></div>
-    </aside>
-    <div className="main">
-      <header className="topbar"><div><strong>{business.name}</strong><small>{business.plan==="essential"?"Essencial • 2 usuários • 90 clientes":"Profissional • 10 usuários • clientes ilimitados"}</small></div><div><strong>{user.name||user.email}</strong><small><button onClick={signOut} style={{border:0,background:"transparent",padding:0,color:"#2271b1",cursor:"pointer"}}>Sair</button></small></div></header>
-      <main className="content" id="inicio">
-        <div className="page-head"><div><span className="eyebrow">VISÃO GERAL</span><h1>Olá, {user.name?.split(" ")[0]||"bem-vindo"} 👋</h1><p>Acompanhe sua operação em um painel simples e profissional.</p></div><button className="primary" onClick={addClient}>+ Novo cliente</button></div>
-        <section className="stats"><article className="card"><span>Clientes</span><strong>{clients.length}</strong><small>{business.client_limit?`${Math.max(0,business.client_limit-clients.length)} vagas no plano`:"Ilimitados"}</small></article><article className="card"><span>Agenda ativa</span><strong>{scheduled}</strong><small>Agendados ou confirmados</small></article><article className="card"><span>Receitas</span><strong>{money(revenue)}</strong><small>Recebimentos registrados</small></article><article className="card"><span>Resultado</span><strong>{money(revenue-expenses)}</strong><small>Receitas menos despesas</small></article></section>
-        <section className="grid"><article className="panel" id="clientes"><div className="panel-head"><div><span className="eyebrow">RELACIONAMENTO</span><h2>Clientes recentes</h2></div><button className="secondary" onClick={addClient}>Novo cliente</button></div>{clients.length?<div className="table-wrap"><table><thead><tr><th>Cliente</th><th>Telefone</th><th>E-mail</th><th>Status</th></tr></thead><tbody>{clients.slice(0,10).map(c=><tr key={c.id}><td><strong>{c.name}</strong></td><td>{c.phone||"—"}</td><td>{c.email||"—"}</td><td><span className="status">{c.status==="active"?"Ativo":c.status}</span></td></tr>)}</tbody></table></div>:<div className="empty">Nenhum cliente ainda. Cadastre o primeiro para começar.</div>}</article>
-        <aside className="panel"><div className="panel-head"><div><span className="eyebrow">ATALHOS</span><h2>Ações rápidas</h2></div></div><div className="quick"><button onClick={addClient}><strong>+ Novo cliente</strong><br/><small>Cadastro protegido pelo limite do plano.</small></button><button><strong>▦ Novo agendamento</strong><br/><small>Módulo preparado no banco.</small></button><button><strong>R$ Nova receita</strong><br/><small>Financeiro protegido por permissão.</small></button><button><strong>▤ Novo orçamento</strong><br/><small>Orçamentos e itens já estruturados.</small></button></div>{business.plan==="essential"&&<div className="limit-note"><strong>Profissional — R$ 139,90/mês</strong><br/>Até 10 usuários, clientes ilimitados e recursos avançados.</div>}</aside></section>
-      </main>
-    </div>
-  </div>;
+  return <AppShell business={workspace.business} user={workspace.user} clientCount={clients.length} memberCount={memberCount}><main className="module-content">
+    <div className="module-head"><div><span className="eyebrow">VISÃO GERAL</span><h1>Olá, {firstName} 👋</h1><p>Acompanhe clientes, agenda, financeiro e comercial em tempo real.</p></div><div className="toolbar"><a className="secondary" href="/agenda">+ Agendamento</a><a className="primary" href="/clientes">+ Novo cliente</a></div></div>
+    {error?<div className="notice error">{error}</div>:null}
+    <section className="summary-row"><article className="summary-card"><span>Clientes</span><strong>{clients.length}</strong><small>{remaining==null?"Plano sem limite":`${remaining} cadastros restantes`}</small></article><article className="summary-card"><span>Agenda ativa</span><strong>{pendingAppointments.length}</strong><small>Próximos compromissos</small></article><article className="summary-card"><span>Receitas recebidas</span><strong>{formatMoney(metrics.revenue)}</strong><small>{metrics.approved} orçamento(s) aprovado(s)</small></article><article className="summary-card"><span>Resultado realizado</span><strong>{formatMoney(metrics.result)}</strong><small>Receitas menos despesas</small></article></section>
+    <section className="grid"><article className="panel"><div className="panel-head"><div><span className="eyebrow">PRÓXIMOS COMPROMISSOS</span><h2>Agenda</h2></div><a className="link-button" href="/agenda">Ver agenda completa →</a></div>{pendingAppointments.length?<div className="agenda-list">{pendingAppointments.slice(0,5).map(item=><article className="agenda-item" key={item.id}><div className="agenda-time"><strong>{new Date(item.starts_at).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</strong><small>{new Date(item.starts_at).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div><div className="agenda-body"><strong>{item.client_id?clientMap.get(item.client_id)||"Cliente":"Cliente"}</strong><small>{formatDateTime(item.starts_at)}</small></div><div><span className={`badge ${item.status==="confirmed"?"blue":"orange"}`}>{item.status==="confirmed"?"Confirmado":"Agendado"}</span></div></article>)}</div>:<div className="empty-state"><strong>Agenda livre</strong><p>Nenhum compromisso futuro. Crie um agendamento para começar.</p><a className="primary" href="/agenda">Novo agendamento</a></div>}</article>
+      <aside className="panel"><div className="panel-head"><div><span className="eyebrow">ATALHOS</span><h2>Ações rápidas</h2></div></div><div className="quick"><a href="/clientes"><strong>👥 Clientes</strong><br/><small>Cadastre e organize sua base.</small></a><a href="/servicos"><strong>🛠 Serviços</strong><br/><small>Preços, duração e catálogo.</small></a><a href="/financeiro"><strong>R$ Financeiro</strong><br/><small>Receitas, despesas e vencimentos.</small></a><a href="/orcamentos"><strong>▤ Orçamentos</strong><br/><small>Propostas e acompanhamento comercial.</small></a><a href="/equipe"><strong>◉ Equipe</strong><br/><small>{memberCount}/{workspace.business.user_limit} usuários ativos.</small></a></div>{workspace.business.plan==="essential"?<div className="limit-note"><strong>Profissional — R$ 139,90/mês</strong><br/>Clientes ilimitados e até 10 usuários. <a href="/assinatura">Ver comparação →</a></div>:null}</aside></section>
+    <section className="grid"><article className="panel"><div className="panel-head"><div><span className="eyebrow">CLIENTES RECENTES</span><h2>Últimos cadastros</h2></div><a className="link-button" href="/clientes">Abrir clientes →</a></div>{clients.length?<div className="table-wrap"><table><thead><tr><th>Cliente</th><th>Telefone</th><th>E-mail</th><th>Status</th></tr></thead><tbody>{clients.slice(0,7).map(client=><tr key={client.id}><td><strong>{client.name}</strong></td><td>{client.phone||"—"}</td><td>{client.email||"—"}</td><td><span className={`badge ${client.status==="active"?"green":""}`}>{client.status==="active"?"Ativo":"Inativo"}</span></td></tr>)}</tbody></table></div>:<div className="empty-state"><strong>Nenhum cliente ainda</strong><p>Cadastre seu primeiro cliente para alimentar agenda, financeiro e orçamentos.</p></div>}</article>
+      <aside className="panel"><div className="panel-head"><div><span className="eyebrow">COMERCIAL</span><h2>Orçamentos aprovados</h2></div></div><div className="summary-card" style={{border:0,padding:0}}><span>Valor aprovado</span><strong>{formatMoney(metrics.approvedValue)}</strong><small>{metrics.approved} orçamento(s) ganho(s)</small></div><div className="summary-card" style={{border:0,padding:"18px 0 0"}}><span>Despesas pagas</span><strong className="finance-negative">{formatMoney(metrics.expenses)}</strong><small>Custos já realizados</small></div><a className="secondary" href="/relatorios" style={{display:"inline-flex",marginTop:18}}>Abrir relatórios</a></aside></section>
+  </main></AppShell>;
 }
