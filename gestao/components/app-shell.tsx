@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { neonClient } from "@/lib/neon";
 import type { SessionUser } from "@/lib/session";
-import { setActiveBusiness, type WorkspaceBusiness } from "@/lib/workspace";
+import { isTrialExpired, setActiveBusiness, trialDaysRemaining, type WorkspaceBusiness } from "@/lib/workspace";
 
 type AppShellProps = {
   business: WorkspaceBusiness;
@@ -33,11 +33,13 @@ export default function AppShell({ business, user, clientCount = 0, memberCount 
   const [businesses, setBusinesses] = useState<WorkspaceBusiness[]>([business]);
   const clientUsage = business.client_limit ? Math.min(100, (clientCount / business.client_limit) * 100) : 100;
   const userUsage = Math.min(100, (memberCount / business.user_limit) * 100);
+  const trialDays = trialDaysRemaining(business);
+  const trialExpired = isTrialExpired(business);
 
   useEffect(() => {
     let active = true;
     async function loadBusinesses() {
-      const result = await neonClient.from("businesses").select("id,name,slug,plan,status,client_limit,user_limit,business_type,phone,email,document").order("name", { ascending: true });
+      const result = await neonClient.from("businesses").select("id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document").order("name", { ascending: true });
       if (!active || result.error || !Array.isArray(result.data) || !result.data.length) return;
       setBusinesses(result.data as WorkspaceBusiness[]);
     }
@@ -91,6 +93,8 @@ export default function AppShell({ business, user, clientCount = 0, memberCount 
             <div className="top-user"><span>{(user.name || user.email || "U").slice(0, 1).toUpperCase()}</span><div><strong>{user.name || user.email}</strong><button type="button" onClick={signOut}>Sair</button></div></div>
           </div>
         </header>
+
+        {business.status === "trial" ? <div className={trialExpired ? "trial-banner expired" : "trial-banner"}>{trialExpired ? <><strong>Seu período de teste terminou.</strong><span>Os dados continuam disponíveis para consulta, mas novas alterações estão bloqueadas.</span><a href="/assinatura">Escolher plano →</a></> : <><strong>Período de teste</strong><span>{trialDays === 1 ? "Último dia para testar todos os recursos." : `${trialDays} dias restantes para testar o Nassus Gestão.`}</span><a href="/assinatura">Ver planos →</a></>}</div> : null}
 
         <div className="mobile-nav" aria-label="Navegação móvel">
           {NAV_ITEMS.slice(0, 6).map((item) => {
