@@ -5,11 +5,11 @@ import { authClient } from "@/lib/auth-client";
 
 export default function AuthRecoveryForm({ mode }: { mode: "forgot" | "reset" }) {
   return (
-    <NeonAuthUIProvider authClient={authClient} basePath="" redirectTo="/sign-in">
+    <NeonAuthUIProvider authClient={authClient} redirectTo="/sign-in">
       {mode === "forgot" ? (
-        <ForgotPasswordForm />
+        <ForgotPasswordForm redirectTo="/reset-password" />
       ) : (
-        <ResetPasswordForm passwordValidation={{ minLength: 10, maxLength: 128 }} />
+        <ResetPasswordForm redirectTo="/sign-in" passwordValidation={{ minLength: 10, maxLength: 128 }} />
       )}
     </NeonAuthUIProvider>
   );
