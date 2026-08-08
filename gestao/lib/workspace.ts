@@ -14,6 +14,7 @@ export type WorkspaceBusiness = {
   client_limit: number | null;
   user_limit: number;
   business_type: string;
+  trial_ends_at?: string | null;
   phone?: string | null;
   email?: string | null;
   document?: string | null;
@@ -25,13 +26,15 @@ export type Workspace = {
   businesses: WorkspaceBusiness[];
 };
 
+const BUSINESS_COLUMNS = "id,name,slug,plan,status,client_limit,user_limit,business_type,trial_ends_at,phone,email,document";
+
 export async function loadWorkspace(): Promise<Workspace | null> {
   const user = await getCurrentUser();
   if (!user?.email) return null;
 
   const result = await neonClient
     .from("businesses")
-    .select("id,name,slug,plan,status,client_limit,user_limit,business_type,phone,email,document")
+    .select(BUSINESS_COLUMNS)
     .order("name", { ascending: true });
 
   if (result.error) throw result.error;
@@ -63,10 +66,21 @@ export function setActiveBusiness(businessId: string) {
   window.location.reload();
 }
 
+export function trialDaysRemaining(business: WorkspaceBusiness): number | null {
+  if (business.status !== "trial" || !business.trial_ends_at) return null;
+  const remaining = new Date(business.trial_ends_at).getTime() - Date.now();
+  return Math.max(0, Math.ceil(remaining / 86_400_000));
+}
+
+export function isTrialExpired(business: WorkspaceBusiness): boolean {
+  return business.status === "trial" && Boolean(business.trial_ends_at) && new Date(business.trial_ends_at as string).getTime() <= Date.now();
+}
+
 export function friendlyWorkspaceError(reason: unknown): string {
   const message = reason instanceof Error ? reason.message : String((reason as { message?: unknown } | null)?.message || "");
   if (/CLIENT_LIMIT_REACHED/.test(message)) return "Você atingiu o limite de 90 clientes do plano Essencial.";
   if (/USER_LIMIT_REACHED/.test(message)) return "Você atingiu o limite de usuários do seu plano.";
+  if (/SUBSCRIPTION_REQUIRED/.test(message)) return "O período de teste terminou ou a assinatura precisa ser regularizada. Acesse Assinatura para continuar criando ou alterando dados.";
   if (/USER_NOT_FOUND/.test(message)) return "Esse e-mail ainda não possui uma conta no Nassus Gestão.";
   if (/ACCESS_DENIED|permission|row-level security/i.test(message)) return "Você não tem permissão para realizar esta ação.";
   if (/network|fetch|timeout/i.test(message)) return "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.";
