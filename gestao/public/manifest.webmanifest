@@ -1,0 +1,13 @@
+{
+  "name": "Nassus Gestão",
+  "short_name": "Nassus",
+  "description": "Gestão profissional para empresas de serviços.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6fb",
+  "theme_color": "#2271b1",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
