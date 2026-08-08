@@ -1,0 +1,27 @@
+name: CRM Health Monitor
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    name: Production health check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check application and database
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --max-time 15 https://crm.nassusinfo.com.br/api/health)"
+          echo "$body" | python -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") is True; assert d.get("database")=="ok"; print("CRM health OK", d.get("timestamp"))'
+
+      - name: Check public signing gateway
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --max-time 15 https://crm.nassusinfo.com.br/api/public-signing)"
+          echo "$body" | python -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") is True; print("Signing gateway OK")'
