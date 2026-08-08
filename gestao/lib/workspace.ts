@@ -4,7 +4,7 @@ import { neonClient } from "@/lib/neon";
 import { getCurrentUser, type SessionUser } from "@/lib/session";
 
 export const ACTIVE_BUSINESS_KEY = "nassus_active_business_id";
-export type BusinessRole = "owner" | "admin" | "member";
+export type BusinessRole = "owner" | "admin" | "member" | "reception" | "professional" | "finance";
 
 export type WorkspaceBusiness = {
   id: string;
@@ -49,14 +49,8 @@ export async function loadWorkspace(): Promise<Workspace | null> {
 
 export async function requireWorkspace(): Promise<Workspace | null> {
   const workspace = await loadWorkspace();
-  if (!workspace) {
-    window.location.replace("/sign-in");
-    return null;
-  }
-  if (!workspace.business) {
-    window.location.replace("/onboarding");
-    return null;
-  }
+  if (!workspace) { window.location.replace("/sign-in"); return null; }
+  if (!workspace.business) { window.location.replace("/onboarding"); return null; }
   return workspace;
 }
 
@@ -68,10 +62,13 @@ export async function getBusinessRole(businessId: string): Promise<BusinessRole 
 
 export async function requireManager(workspace: Workspace): Promise<BusinessRole | null> {
   const role = await getBusinessRole(workspace.business.id);
-  if (role !== "owner" && role !== "admin") {
-    window.location.replace("/?permission=manager");
-    return null;
-  }
+  if (role !== "owner" && role !== "admin") { window.location.replace("/?permission=manager"); return null; }
+  return role;
+}
+
+export async function requireFinance(workspace: Workspace): Promise<BusinessRole | null> {
+  const role = await getBusinessRole(workspace.business.id);
+  if (!role || !["owner","admin","finance"].includes(role)) { window.location.replace("/?permission=finance"); return null; }
   return role;
 }
 
@@ -103,16 +100,6 @@ export function friendlyWorkspaceError(reason: unknown): string {
   return message || "Não foi possível concluir a operação.";
 }
 
-export function formatMoney(value: number | string | null | undefined): string {
-  return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-export function formatDateTime(value: string | null | undefined): string {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
-}
-
-export function formatDate(value: string | null | undefined): string {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
-}
+export function formatMoney(value: number | string | null | undefined): string { return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+export function formatDateTime(value: string | null | undefined): string { if (!value) return "—"; return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)); }
+export function formatDate(value: string | null | undefined): string { if (!value) return "—"; return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`)); }
