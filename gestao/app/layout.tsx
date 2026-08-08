@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import PWARegister from "@/components/pwa-register";
+import "@neondatabase/auth-ui/css";
 import "./globals.css";
 import "./modules.css";
 import "./modules-fixes.css";
