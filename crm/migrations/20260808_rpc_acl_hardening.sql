@@ -1,20 +1,70 @@
--- Hardening de ACL das RPCs administrativas da lixeira.
+-- Hardening de ACL das RPCs e helpers internos do CRM.
+-- O papel anonymous não precisa executar nenhuma função crm_*; o portal público de assinatura usa gateway server-side dedicado.
+
 REVOKE ALL ON FUNCTION public.crm_soft_delete(text,bigint,text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crm_soft_delete(text,bigint,text) FROM anonymous;
 GRANT EXECUTE ON FUNCTION public.crm_soft_delete(text,bigint,text) TO authenticated;
-
 REVOKE ALL ON FUNCTION public.crm_list_trash() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crm_list_trash() FROM anonymous;
 GRANT EXECUTE ON FUNCTION public.crm_list_trash() TO authenticated;
-
 REVOKE ALL ON FUNCTION public.crm_restore_trash_batch(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crm_restore_trash_batch(uuid) FROM anonymous;
 GRANT EXECUTE ON FUNCTION public.crm_restore_trash_batch(uuid) TO authenticated;
-
 REVOKE ALL ON FUNCTION public.crm_purge_trash_batch(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crm_purge_trash_batch(uuid) FROM anonymous;
 GRANT EXECUTE ON FUNCTION public.crm_purge_trash_batch(uuid) TO authenticated;
-
 REVOKE ALL ON FUNCTION public.crm_purge_expired_trash() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crm_purge_expired_trash() FROM anonymous;
 GRANT EXECUTE ON FUNCTION public.crm_purge_expired_trash() TO authenticated;
+
+REVOKE ALL ON FUNCTION public.crm_assign_workspace_owner() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_assign_workspace_owner() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_assign_workspace_owner() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_auth_user_id() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_auth_user_id() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_auth_user_id() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_can(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_can(text) FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_can(text) TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_claim_membership() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_claim_membership() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_claim_membership() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_current_role() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_current_role() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_current_role() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_export_backup() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_export_backup() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_export_backup() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_finalize_receipt_trigger() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_finalize_receipt_trigger() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_finalize_receipt_trigger() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_finalize_receipt_version(bigint) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_finalize_receipt_version(bigint) FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_finalize_receipt_version(bigint) TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_guard_signed_document_changes() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_guard_signed_document_changes() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_guard_signed_document_changes() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_immutable_record_guard() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_immutable_record_guard() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_immutable_record_guard() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_my_access() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_my_access() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_my_access() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_normalize_receipt_before_write() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_normalize_receipt_before_write() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_normalize_receipt_before_write() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_repair_sequences() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_repair_sequences() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_repair_sequences() TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_restore_backup(jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_restore_backup(jsonb) FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_restore_backup(jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_set_team_member_status(bigint,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_set_team_member_status(bigint,text) FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_set_team_member_status(bigint,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_upsert_team_member(bigint,text,text,text,jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_upsert_team_member(bigint,text,text,text,jsonb) FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_upsert_team_member(bigint,text,text,text,jsonb) TO authenticated;
+REVOKE ALL ON FUNCTION public.crm_workspace_owner_id() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.crm_workspace_owner_id() FROM anonymous;
+GRANT EXECUTE ON FUNCTION public.crm_workspace_owner_id() TO authenticated;
