@@ -1,6 +1,6 @@
 "use client";
 
-type ClientDiagnosticEvent = "ui_error" | "unhandled_rejection" | "auth_session_unavailable" | "workspace_claim_failed";
+type ClientDiagnosticEvent = "ui_error" | "unhandled_rejection" | "auth_session_unavailable" | "workspace_claim_failed" | "route_error_boundary";
 
 function safeRoute(): string {
   if (typeof window === "undefined") return "/";
@@ -17,7 +17,7 @@ export function reportClientIssue(event: ClientDiagnosticEvent, reason: unknown,
   void fetch("/api/client-diagnostics", {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({ event, message, digest, route: safeRoute() }),
+    body: JSON.stringify({ event, message, digest: String(digest || "").slice(0, 160), route: safeRoute() }),
     keepalive: true,
     cache: "no-store",
   }).catch(() => undefined);

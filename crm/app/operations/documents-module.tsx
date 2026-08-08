@@ -1,7 +1,7 @@
 "use client";
 
-import { DocumentsCenterV3 } from "./documents-center-v3";
+import { DocumentsCenterV4 } from "./documents-center-v4";
 
-export function DocumentsModule(props: React.ComponentProps<typeof DocumentsCenterV3>) {
-  return <DocumentsCenterV3 {...props} />;
+export function DocumentsModule(props: React.ComponentProps<typeof DocumentsCenterV4>) {
+  return <DocumentsCenterV4 {...props} />;
 }
