@@ -6,7 +6,8 @@ export async function GET(){
   return NextResponse.json({
     status:"ok",
     app:"nassus-gestao",
-    version:"0.3.0",
+    version:"0.4.0",
+    release:"nassus-one",
     timestamp:new Date().toISOString(),
   },{headers:{"Cache-Control":"no-store"}});
 }
