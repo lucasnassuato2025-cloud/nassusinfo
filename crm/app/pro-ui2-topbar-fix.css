@@ -1,0 +1,80 @@
+/* Pro UI 2.0 — topbar action button cleanup */
+html.nassus-pro-ui2 .pro-top-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions .pro-icon-button{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  width:42px!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:0!important;
+  border:1px solid #c3c4c7!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:#2271b1!important;
+  font-size:0!important;
+  line-height:1!important;
+  box-shadow:0 1px 2px rgba(29,35,39,.06)!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions .pro-icon-button::before{
+  content:""!important;
+  display:block!important;
+  width:18px!important;
+  height:18px!important;
+  background:currentColor!important;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M10.5 4a6.5 6.5 0 1 0 4.07 11.57l4.43 4.43 1.41-1.41-4.42-4.42A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z'/%3E%3C/svg%3E") center/contain no-repeat!important;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M10.5 4a6.5 6.5 0 1 0 4.07 11.57l4.43 4.43 1.41-1.41-4.42-4.42A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z'/%3E%3C/svg%3E") center/contain no-repeat!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions .pro-icon-button:hover{
+  border-color:#2271b1!important;
+  background:#f0f6fc!important;
+  color:#135e96!important;
+  box-shadow:0 2px 8px rgba(34,113,177,.12)!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions .pro-primary{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:42px!important;
+  padding:0 17px!important;
+  border:1px solid #2271b1!important;
+  border-radius:8px!important;
+  background:#2271b1!important;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  line-height:1!important;
+  letter-spacing:-.01em!important;
+  white-space:nowrap!important;
+  box-shadow:0 2px 8px rgba(34,113,177,.18)!important;
+}
+
+/* The legacy theme injects an extra plus through ::before. Remove it here. */
+html.nassus-pro-ui2 .pro-top-actions .pro-primary::before{
+  content:none!important;
+  display:none!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions .pro-primary:hover{
+  border-color:#135e96!important;
+  background:#135e96!important;
+  box-shadow:0 4px 12px rgba(19,94,150,.2)!important;
+}
+
+html.nassus-pro-ui2 .pro-top-actions button:active{
+  transform:translateY(1px)!important;
+}
+
+@media(max-width:560px){
+  html.nassus-pro-ui2 .pro-top-actions{gap:7px!important}
+  html.nassus-pro-ui2 .pro-top-actions .pro-icon-button{width:40px!important;height:40px!important;min-height:40px!important}
+  html.nassus-pro-ui2 .pro-top-actions .pro-primary{min-height:40px!important;padding:0 13px!important;font-size:12px!important}
+}
