@@ -2,32 +2,32 @@
 
 SaaS multiempresa para prestadores de serviços, desenvolvido em Next.js e conectado ao Neon Auth + Data API.
 
-## Pacote pré-Cakto implementado
+## Versão 0.3.0 — auditoria pré-lançamento
 
 - login, cadastro e recuperação de senha;
-- onboarding com trial de 7 dias;
+- Neon Auth com `app.nassusinfo.com.br` autorizado em produção e localhost desativado na branch principal;
+- onboarding com trial de 7 dias e bloqueio de repetição de trial self-service;
 - múltiplas empresas por usuário e troca de workspace;
-- Dashboard com dados reais;
+- Dashboard com dados reais e conteúdo ajustado por perfil;
 - Clientes com busca, WhatsApp e perfil 360°;
-- histórico do cliente com agenda, orçamentos e financeiro permitido pelo perfil;
 - Serviços com preço, duração e status;
 - Agenda por cliente, serviço e profissional;
-- bloqueio de conflito de horário no PostgreSQL;
+- bloqueio de conflito de horário serializado no PostgreSQL;
 - confirmação de atendimento por WhatsApp sem API paga;
-- página pública de agendamento sem login;
-- horário comercial configurável e validado no banco;
+- página pública de agendamento com validação de contato, duplicidade, horário comercial e tenant;
 - Financeiro com receitas, despesas, vencimentos e baixa;
-- Orçamentos com múltiplos itens, desconto, validade e fluxo de aprovação;
-- impressão e salvamento de orçamento em PDF pelo navegador;
+- Orçamentos com múltiplos itens, numeração automática por empresa, totais calculados no servidor e criação transacional;
 - Equipe com Proprietário, Administrador, Equipe, Recepção, Profissional e Financeiro;
-- permissões por módulo aplicadas por RLS, não apenas no menu;
-- Relatórios com período e exportação CSV;
-- Configurações da empresa, endereço e agendamento público;
+- princípio do menor privilégio: Financeiro recebe somente nomes necessários e métricas agregadas;
+- permissões por módulo aplicadas por RLS/RPCs, não apenas no menu;
+- Relatórios por período e exportação CSV;
+- Configurações e horários da empresa atualizados por RPCs validadas;
 - central de Assinatura preparada para os checkouts Cakto;
-- Nassus Admin com empresas, trials, planos, usuários e MRR estimado;
-- PWA instalável, manifesto, ícone, service worker e fallback offline seguro;
-- endpoint `/api/health`;
-- CI no GitHub com typecheck + build do Next.js.
+- Nassus Admin protegido por `platform_admins`;
+- PWA instalável e fallback offline seguro;
+- `/api/health` alinhado à versão 0.3.0;
+- CSP e headers de segurança na Vercel;
+- CI com `npm audit --audit-level=high`, TypeScript e `next build`.
 
 ## Planos
 
@@ -39,12 +39,12 @@ SaaS multiempresa para prestadores de serviços, desenvolvido em Next.js e conec
 - até 10 usuários;
 - clientes ilimitados.
 
-Os limites são fiscalizados no PostgreSQL. O Essencial foi testado com 90 clientes e bloqueou o 91º cadastro.
+Os limites são fiscalizados no PostgreSQL e protegidos contra concorrência. O Essencial foi testado com 90 clientes e bloqueou o 91º cadastro; o terceiro usuário também é recusado.
 
 ## Perfis e permissões
 
 - Proprietário / Administrador: gestão completa;
-- Financeiro: Financeiro e Relatórios;
+- Financeiro: Financeiro e Relatórios com dados operacionais minimizados;
 - Recepção: Clientes, Agenda, Serviços e Orçamentos;
 - Profissional: Clientes, Agenda e Serviços;
 - Equipe: operação geral e Orçamentos.
@@ -59,7 +59,7 @@ A empresa pode ativar uma página como:
 /agendar/<slug-da-empresa>
 ```
 
-O endpoint público expõe somente dados necessários ao agendamento. O banco valida empresa ativa/trial válido, serviço, profissional, limite de clientes, conflito de horário e horário de funcionamento.
+O banco valida empresa ativa/trial válido, serviço, profissional, limite de clientes, conflito de horário, contato, duplicidade e horário de funcionamento.
 
 ## Segurança e cobrança
 
@@ -70,27 +70,23 @@ O endpoint público expõe somente dados necessários ao agendamento. O banco va
 - `apply_billing_state` é reservada a backend confiável;
 - billing pendente não promove plano; somente estado ativo validado pode liberar o plano;
 - `platform_admins` controla o Nassus Admin fora das permissões das empresas;
-- segredos e `DATABASE_URL` não são enviados ao navegador nem versionados.
+- RPCs privadas não são executáveis pelo papel anônimo;
+- segredos e `DATABASE_URL` não são enviados ao navegador nem versionados;
+- dependências transitivas vulneráveis encontradas na auditoria foram substituídas por overrides corrigidos e o gate de segurança passou.
 
 ## Banco e migrações
 
 Projeto Neon: `nassus-gestao`.
 
 - `main`: produção;
-- `development`: testes e validação.
+- `development`: testes e validação;
+- `backup-pre-gestao-0-3-0-20260808`: snapshot criado antes da promoção 0.3.0.
+
+Migrações novas da auditoria:
 
 ```text
-database/schema.sql
-database/002-team-access.sql
-database/003-billing-guard.sql
-database/004-trial-write-guard.sql
-database/005-role-permissions.sql
-database/006-team-trial-guard.sql
-database/007-tenant-reference-guard.sql
-database/008-billing-state.sql
-database/009-public-booking-admin.sql
-database/010-access-profiles.sql
-database/011-public-booking-hours.sql
+database/013-prelaunch-hardening.sql
+database/014-team-data-minimization.sql
 ```
 
 ## Cakto
@@ -118,14 +114,13 @@ npm run dev
 
 ```text
 Root Directory: gestao
-Domínio planejado: app.nassusinfo.com.br
+Domínio: https://app.nassusinfo.com.br
 ```
 
 O site `nassusinfo.com.br` e o CRM `crm.nassusinfo.com.br` permanecem aplicações separadas.
 
-## Bloqueios externos restantes
+## Pendências antes da venda em escala
 
-- criar/conectar o projeto `nassus-gestao` na hospedagem e associar `app.nassusinfo.com.br`;
-- inserir os dois links reais de checkout Cakto;
-- implementar o webhook após obter o contrato oficial dos eventos da Cakto;
-- cadastrar a primeira conta real do Gestão antes de conceder o papel de administrador da plataforma. Nenhuma credencial administrativa artificial é criada pelo código.
+- inserir os dois links reais de checkout Cakto e implementar o webhook oficial;
+- configurar SMTP próprio no Neon Auth e habilitar verificação de e-mail antes de abertura ampla ao público;
+- cadastrar a primeira conta real antes de conceder o papel de administrador da plataforma.
