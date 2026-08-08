@@ -3,6 +3,7 @@ import PWARegister from "@/components/pwa-register";
 import "./globals.css";
 import "./modules.css";
 import "./modules-fixes.css";
+import "./pre-cakto.css";
 
 export const metadata: Metadata = {
   title: { default: "Nassus Gestão", template: "%s | Nassus Gestão" },
